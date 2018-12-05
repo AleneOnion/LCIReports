@@ -13,7 +13,7 @@ sample<-read.csv("Sample.csv")
 lake<-read.csv("Lake.Master.csv")
 
 #set working directory
-setwd("C:/Rscripts/Internal_Loading")
+setwd("C:/Rscripts/LCIReports")
 
 #run the rmarkdown script for this list
 library(rmarkdown)
