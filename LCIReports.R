@@ -17,12 +17,20 @@ setwd("C:/Rscripts/LCIReports")
 
 source('source/Lakes.R')
 
-for(lake in unique(data$LAKE_ID)){
-  rmarkdown::render('source/report.Rmd',  # file 2
-                    output_file =  paste("report_", lake, '_', Sys.Date(), ".html", sep=''), 
-                    output_dir = 'reports')
-}
+lakes<-unique(data$LAKE_ID)
 
+for(lake in lakes){
+  temp<-data[data$LAKE_ID==lake,]
+  temp<-temp[!is.na(temp$LAKE_ID),]
+  #for the title of the file and the report
+  water<-tail(unique(temp$WATER),1)
+  thistitle<-paste("LCI Report for ",water,sep='')
+  rmarkdown::render('source/report.Rmd',  # file 2
+                    output_file =  paste("report_", water,"(",lake,")_", Sys.Date(), ".html", sep=''), 
+                    output_dir = 'reports')
+  rm(list = c('temp','water','thistitle'))
+}
+rm(list = c('lake','lakes'))
 
 
 bprofiles<-profiles

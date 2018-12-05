@@ -1,16 +1,14 @@
 ---
-title: "report"
-author: "Alene Onion"
-date: "December 5, 2018"
+title: "`r thistitle`"
+author: "NYS Department of Environmental Conservation"
+date: "`r format(Sys.Date(),format='%B %d, %Y')`"
 output: html_document
 ---
+
 
 ## Report  
 this section makes the report for each file
 ```{r, echo=FALSE}
-temp<-data[data$LAKE_ID==lake,]
 temp<-unique(temp[c("LAKE_ID","WATER")])
-temp$LAKE_ID
-temp$WATER
-rm(temp)
+temp
 ```
