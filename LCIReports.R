@@ -15,10 +15,13 @@ lake<-read.csv("Lake.Master.csv")
 #set working directory
 setwd("C:/Rscripts/LCIReports")
 
-#run the rmarkdown script for this list
-library(rmarkdown)
-render("LCIReports.Rmd")
+source('source/Lakes.R')
 
+for(lake in unique(data$LAKE_ID)){
+  rmarkdown::render('source/report.Rmd',  # file 2
+                    output_file =  paste("report_", lake, '_', Sys.Date(), ".html", sep=''), 
+                    output_dir = 'reports')
+}
 
 
 

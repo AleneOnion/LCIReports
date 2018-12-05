@@ -1,13 +1,6 @@
----
-title: "Lakes Data"
-author: "Alene Onion"
-date: "November 13, 2018"
-output: html_document
----
-
-## Lakes data  
-This section reads the lakes data tables, reformats them slightly and then merges them
-```{r, echo=TRUE}
+#2018/12/5
+#Onion
+#this script reformats and merges lakes data
 
 #renaming columns so they match
 names(location)[names(location)=="LocationID"]<-"LOCATION_ID"
@@ -79,9 +72,7 @@ lake$County<-toupper(lake$County)
 
 #Add info type to the profile data table
 profiles$INFO_TYPE="DP"
-```
 
-```{r, echo=FALSE}
 #2. Merge the data tables
 #merge results table with sample table 
 data<-merge(results,sample,by=c("SAMPLE_NAME","SAMPLE_ID"),all=TRUE)
@@ -120,5 +111,5 @@ data$SAMPLE_DATE<-as.Date(data$SAMPLE_DATE,format="%m/%d/%Y")
 
 #remove sub tables
 rm(list = c('lake','profiles','location','results','sample'))
-```
+
 
