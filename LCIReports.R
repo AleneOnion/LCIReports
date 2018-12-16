@@ -2,6 +2,18 @@
 #alene Onion
 # November 2018
 
+
+##when working away from the L drive use this and start at thresholds<-read.csv("source/thresholds.csv")
+dara<-read.csv('source/data12162018')
+data$SAMPLE_DATE<-as.Date(data$SAMPLE_DATE,format="%m/%d/%Y")
+
+#if using alan's computer you have to change the user in git
+#click git tab->click gear->in command line type:
+#git config user.email "alene.onion@dec.ny.gov"
+#git config user.name "Alene Onion"
+
+
+
 #set working directory
 setwd("L:/DOW/StreamDatabase/Lakes/data")
 
