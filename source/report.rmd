@@ -17,29 +17,60 @@ rm(records)
 ```
 
 
-##Trophic State
-overall score	  
-3	      eutrophic  
-6 or <6	mesotrophic  
-7,8	    mesooligotrophic  
-9	      oligotrophic  
-  
-clarity  
-1	<2  
-2	2-5  
-3	>5  
-  
-TP surface  
-1	>0.02  
-2	0.01-0.02  
-3	<0.01  
-  
-Chl a  
-1	>8  
-2	2-8  
-3	<2  
-				
+##Calculated 
+###Trophic State
+```{r, echo=FALSE,results='asis'}
+score<-c(1,2,3)  
+clarity<-c('<2','2-5','>5')
+TP.surface<-c('>0.02','0.01-0.02','<0.01')
+Chla<-c('>8','2-8','<2') 
+trophic.subsets<-data.frame(score,clarity,TP.surface,Chla)
+knitr::kable(trophic.subsets) 
+rm(list=c('score','clarity','TP.surface','Chla','trophic.subsets'))
 
+#trophic state score table
+overall.score<-c('3','6 or <6','7 or 8','9')
+trophic.state<-c('eutrophic','mesotrophic','mesooligotrophic','oligotrophic')
+overall.trophic.state<-data.frame(overall.score,trophic.state)
+knitr::kable(overall.trophic.state) 
+rm(list=c('overall.trophic.state','overall.score','trophic.state'))
+```				
+###Public Water Supply Use
+assuming this waterbody is a public water supply  
+
+Components:  
+UR - number of days PWS use was restricted  
+AT - Additional Treatment (?? what does this mean? They are all blank?)  
+MCL - any maximum contamination limit violations reported at the public water supply (??how did you get this info??)  
+ChlA - What percent of the Chl A readings since 2011 exceeded the standard (class AA standard is >4, class A standard is >6)
+HABs - How many days were HABs observed since 2011 (???This column (BF) in the excel table is blank so I'm wondering how you got this??)
+BGA - Readings of FP-BGChl over 25 since 2011
+sHABs - Count of shoreline habs that have FP-BGChl reading over 25 since 2011
+Bind - Assuming the lake is neither class B or C, The number of Fe, Mn, As hypolimnion samples that exceeded thresholds. NOTE: inferred DO is calculated in aquatic life table ???Why do you only count Fe readings if there are more than one???  
+  
+Components:
+```{r, echo=FALSE,results='asis'}
+score<-c('-1',0,1.3,2.2,2.3,2.4,2.5,2.6,3.3,3.6,3.7,3.8,3.9,4.9)
+UR<-c('not PWS',0,'','','','','','','','','','','0-30','>30')
+AT<-c('not PWS','','','','','','','','','','','is PWS','','')
+MCL<-c('not PWS','no','','','','','','','','','yes','','','')
+ChlA<-c('','<10%','','','','','','10%-50%','','>50%','','','','')
+HABs<-c('not PWS',0,'','','','','>0','','','','','','','')
+BGA<-c('not PWS',0,'','','','>0','','','','','','','','')
+sHABs<-c('not PWS',0,'','>0','','','','','','','','','','')
+Bind <-c('','','av As>0.3 OR InferredDO>0','','av Mn>0.1 OR count(Fe>1)>1','','','','count(Fe>10)>1','','','','','')
+PWS<-data.frame(score,UR,AT,MCL,ChlA,HABs,BGA,sHABs,Bind)
+knitr::kable(PWS)
+rm(list=c('score','UR','PWS','AT','MCL','ChlA','HABs','BGA','sHABs','Bind'))
+
+
+```	
+Total Score for Potable Water Supplies  
+```{r, echo=FALSE,results='asis'}
+score<-c(2,3,4,5,6)
+avYear<-c('notPWS','0-1','max(PWS)>1','max(PWS)>2','max(PWS)>3')
+y2018<-c('notPWS','max(PWS18)')
+```	
 
 ## Secchi Depth
 Secchi depth data were collected:
