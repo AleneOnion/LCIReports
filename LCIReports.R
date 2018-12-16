@@ -15,7 +15,10 @@ lake<-read.csv("Lake.Master.csv")
 #set working directory
 setwd("C:/Rscripts/LCIReports")
 
+info<-read.csv('source/Lake_info.csv')
+
 source('source/Lakes.R')
+#create a backup that I can fall back on if I doubt the scripting below
 databackup<-data
 
 
@@ -48,10 +51,36 @@ data<-merge(data,secchi,by=c('LAKE_ID','LOCATION_ID'),all=FALSE)
 rm(list = c('secchi','profiles'))
 
 
-#long term trend data
-temp<-data[data$Characteristic.Name=="PHOSPHORUS"|data$Characteristic.Name=="TOTAL PHOSPHORUS, MIXED FORMS"|data$Characteristic.Name=="ORTHOPHOSPHATE",]
-temp<-unique(temp[c('LAKE_ID','LOCATION_ID','SAMPLE_NAME','SAMPLE_ID','Characteristic.Name','SAMPLE_DATE','INFO_TYPE','START_DEPTH','END_DEPTH','Depth','TIME')])
+#pulling the sites that have long term trend data
+#surface and deep distinguished between using start depth
+temp<-data[!is.na(data$START_DEPTH),]
+#long term parameters
+temp<-temp[temp$Characteristic.Name=='PHOSPHORUS'|
+             temp$Characteristic.Name=='ORTHOPHOSPHATE'|
+             temp$Characteristic.Name=='CHLOROPHYLL A'|
+             temp$Characteristic.Name=='CHLOROPHYLL A (PROBE)'|
+             temp$Characteristic.Name=='CHLOROPHYLL A (PROBE) CONCENTRATION, DINOPHYTA (DIATOMS)'|
+             temp$Characteristic.Name=='NITROGEN, NITRATE-NITRITE'|
+             temp$Characteristic.Name=='INORGANIC NITROGEN (NITRATE AND NITRITE)'|
+             temp$Characteristic.Name=='NITROGEN'|
+             temp$Characteristic.Name=='NITROGEN, NITRATE (AS N)'|
+             temp$Characteristic.Name=='NITROGEN, KJELDAHL, TOTAL'|
+             temp$Characteristic.Name=='CALCIUM'|
+             temp$Characteristic.Name=='APPARENT COLOR'|
+             temp$Characteristic.Name=='COLOR, UNKNOWN'|
+             temp$Characteristic.Name=='TRUE COLOR'|
+             temp$Characteristic.Name=='PH'|
+             temp$Characteristic.Name=='PH FOR COLOR ANALYSIS'|
+             temp$Characteristic.Name=='CONDUCTIVITY'|
+             temp$Characteristic.Name=='SPECIFIC CONDUCTANCE'|
+             temp$Characteristic.Name=='TEMPERATURE, WATER',]
 temp<-temp[!is.na(temp$Characteristic.Name),]
+temp<-unique(temp[c('LAKE_ID','LOCATION_ID')])
+data<-merge(data,temp,by=c('LAKE_ID','LOCATION_ID'),all=FALSE)
+rm(temp)
+
+#these thresholds will define oligo meso and eutrophic thresholds for future plots
+thresholds<-read.csv("source/thresholds.csv")
 
 
 
@@ -94,41 +123,7 @@ rm(list = c('data'))
 data<-databackup
 
 
-surface and deep distinguished between using start depth
 
-PHOSPHORUS
-TOTAL PHOSPHORUS, MIXED FORMS
-ORTHOPHOSPHATE
 
-CHLOROPHYLL A
-CHLOROPHYLL A (PROBE RELATIVE FLUORESCENCE)
-CHLOROPHYLL A (PROBE) CONCENTRATION, CHLOROPHYTE (GREEN ALGAE)
-CHLOROPHYLL A (PROBE) CONCENTRATION, CRYPTOPHYTA (CRYPTOPHYTES)
-CHLOROPHYLL A (PROBE) CONCENTRATION, CYANOBACTERIA (BLUEGREEN)
-CHLOROPHYLL A (PROBE) CONCENTRATION, DINOPHYTA (DIATOMS)
-
-NITROGEN, NITRATE-NITRITE
-INORGANIC NITROGEN (NITRATE AND NITRITE)
-NITROGEN
-TOTAL NITROGEN, MIXED FORMS
-NITROGEN, NITRATE (AS N)
-INORGANIC NITROGEN
-NITROGEN, KJELDAHL, TOTAL
-
-CALCIUM
-
-APPARENT COLOR
-COLOR, UNKNOWN
-TRUE COLOR
-
-PH
-PH FOR COLOR ANALYSIS
-PH 
-
-CONDUCTIVITY
-SPECIFIC CONDUCTANCE
-
-TEMPERATURE, WATER
-TEMPERATURE, AIR
 
 
