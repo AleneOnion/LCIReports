@@ -64,6 +64,12 @@ data<-data[!is.na(data$Characteristic.Name),]
 #now restrict to LCI samples only
 data<-data[data$DATA_PROVIDER=="LCI",]
 
+#write backup
+write.csv(data,file="sections/data/data.backup.csv",row.names=FALSE)
+data<-read.csv("sections/data/data.backup.csv", stringsAsFactors=FALSE)
+data<-data[!is.na(data$Characteristic.Name),]
+data$SAMPLE_DATE<-as.Date(data$SAMPLE_DATE,format="%Y-%m-%d")
+
 #now restrict to only the intensive basins
 intensive<-data
 intensive$basin<-substring(intensive$LAKE_ID,1,2)
@@ -75,8 +81,6 @@ intensive<-intensive[intensive$basin=="17"|
                        intensive$LAKE_ID=="1301THE1027"|
                        intensive$LAKE_ID=="1301THE1034"|
                        intensive$LAKE_ID=="1301UWB1031",]
-
-
 
 ############################################################################################################
 #ADDING THRESHOLDS
@@ -147,45 +151,46 @@ rm(list=c('UVDOC','samples'))
 #these thresholds will define oligo meso and eutrophic thresholds for future plots
 thresholds<-read.csv("sections/data/thresholds.csv", stringsAsFactors=FALSE)
 thresholds<-thresholds[thresholds$thresholdMAX!=0,]
+thresholds$notes<-NULL
 
 #add thresholds
 trend<-merge(trend,thresholds,by=c('Characteristic.Name','Result.Sample.Fraction'),all=TRUE)
 
-#calculate assessments state
-trend$assessments<-NA
-trend$assessments<-ifelse(is.na(trend$thresholdMAX),NA,ifelse(trend$Result.Value>trend$thresholdMAX,"eutrophic",ifelse(trend$Result.Value>trend$thresholdMIN,"mesotrophic","oligotrophic")))
+#calculate exceedances state
+trend$exceedances<-NA
+trend$exceedances<-ifelse(is.na(trend$thresholdMAX),NA,ifelse(trend$Result.Value>trend$thresholdMAX,"eutrophic",ifelse(trend$Result.Value>trend$thresholdMIN,"mesotrophic","oligotrophic")))
 #now doing specific calculations for pH and secchi
-trend$assessments<-ifelse(trend$Characteristic.Name=="PH",ifelse(trend$Result.Value>trend$thresholdMAX,"high PH",ifelse(trend$Result.Value<trend$thresholdMIN,"low PH","healthy")),trend$assessments)
-trend$assessments<-ifelse(trend$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH",ifelse(trend$Result.Value<trend$thresholdMIN,"eutrophic",ifelse(trend$Result.Value<trend$thresholdMAX,"mesotrophic","oligotrophic")),trend$assessments)
-trend$assessments<-ifelse(trend$Characteristic.Name=="DISK, SECCHI DISK DEPTH",ifelse(trend$Result.Value<trend$thresholdMIN,"eutrophic",ifelse(trend$Result.Value<trend$thresholdMAX,"mesotrophic","oligotrophic")),trend$assessments)
-trend$assessments<-ifelse(trend$Characteristic.Name=="Bottom_Oxygen",ifelse(trend$Result.Value>trend$thresholdMAX,"healthy DO",ifelse(trend$Result.Value<trend$thresholdMIN,"anoxic","lower DO than WQS")),trend$assessments)
-trend$assessments<-ifelse(trend$Characteristic.Name=="UVDOC",ifelse(trend$Result.Value>trend$thresholdMAX,"UVDOC high","healthy UVDOC"),trend$assessments)
-trend$assessments<-ifelse(trend$Characteristic.Name=="CALCIUM",ifelse(trend$Result.Value>trend$thresholdMAX,"high CA",ifelse(trend$Result.Value<trend$thresholdMIN,"low CA","healthy")),trend$assessments)
-trend$assessments<-ifelse(trend$Characteristic.Name=="SPECIFIC CONDUCTANCE",ifelse(trend$Result.Value>trend$thresholdMAX,"hardwater",ifelse(trend$Result.Value<trend$thresholdMIN,"softwater","healthy")),trend$assessments)
-trend$assessments<-ifelse(trend$Characteristic.Name=="TNTP",ifelse(trend$Result.Value>trend$thresholdMAX,"high TNTP",ifelse(trend$Result.Value<trend$thresholdMIN,"low TNTP","healthy")),trend$assessments)
-trend$assessments<-ifelse(trend$Characteristic.Name=="TRUE COLOR",ifelse(trend$Result.Value>trend$thresholdMAX,"high color","healthy"),trend$assessments)
-trend$assessments<-ifelse(trend$Characteristic.Name=="PHOSPHORUS",(ifelse(trend$INFO_TYPE=="BS","healthy",trend$assessments)),trend$assessments)
-trend$assessments<-ifelse(trend$Characteristic.Name=="CHLOROPHYLL A",(ifelse(trend$INFO_TYPE=="DP","ignore ChlA from DP",trend$assessments)),trend$assessments)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="PH",ifelse(trend$Result.Value>trend$thresholdMAX,"high PH",ifelse(trend$Result.Value<trend$thresholdMIN,"low PH","healthy")),trend$exceedances)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH",ifelse(trend$Result.Value<trend$thresholdMIN,"eutrophic",ifelse(trend$Result.Value<trend$thresholdMAX,"mesotrophic","oligotrophic")),trend$exceedances)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="DISK, SECCHI DISK DEPTH",ifelse(trend$Result.Value<trend$thresholdMIN,"eutrophic",ifelse(trend$Result.Value<trend$thresholdMAX,"mesotrophic","oligotrophic")),trend$exceedances)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="Bottom_Oxygen",ifelse(trend$Result.Value>trend$thresholdMAX,"healthy DO",ifelse(trend$Result.Value<trend$thresholdMIN,"anoxic","lower DO than WQS")),trend$exceedances)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="UVDOC",ifelse(trend$Result.Value>trend$thresholdMAX,"UVDOC high","healthy UVDOC"),trend$exceedances)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="CALCIUM",ifelse(trend$Result.Value>trend$thresholdMAX,"high CA",ifelse(trend$Result.Value<trend$thresholdMIN,"low CA","healthy")),trend$exceedances)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="SPECIFIC CONDUCTANCE",ifelse(trend$Result.Value>trend$thresholdMAX,"hardwater",ifelse(trend$Result.Value<trend$thresholdMIN,"softwater","healthy")),trend$exceedances)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="TNTP",ifelse(trend$Result.Value>trend$thresholdMAX,"high TNTP",ifelse(trend$Result.Value<trend$thresholdMIN,"low TNTP","healthy")),trend$exceedances)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="TRUE COLOR",ifelse(trend$Result.Value>trend$thresholdMAX,"high color","healthy"),trend$exceedances)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="PHOSPHORUS",(ifelse(trend$INFO_TYPE=="BS","healthy",trend$exceedances)),trend$exceedances)
+trend$exceedances<-ifelse(trend$Characteristic.Name=="CHLOROPHYLL A",(ifelse(trend$INFO_TYPE=="DP","ignore ChlA from DP",trend$exceedances)),trend$exceedances)
 
-#remove rows with NA in assessments state and simplify data set
-trend<-unique(trend[c('assessments','LAKE_ID','WATER','Waterbody_Classification','LOCATION_ID','SAMPLE_ID','SAMPLE_NAME','SAMPLE_DATE','TIME','Characteristic.Name','Result.Value','Result.Sample.Fraction','Result.Unit',
+#remove rows with NA in exceedances state and simplify data set
+trend<-unique(trend[c('exceedances','LAKE_ID','WATER','Waterbody_Classification','LOCATION_ID','SAMPLE_ID','SAMPLE_NAME','SAMPLE_DATE','TIME','Characteristic.Name','Result.Value','Result.Sample.Fraction','Result.Unit',
                       'INFO_TYPE','START_DEPTH','END_DEPTH','VALIDATOR_QUALIFIERS','INTERPRETED_QUALIFIERS','Depth','thresholdMIN','thresholdMAX','DATA_PROVIDER')])
 trend<-trend[!is.na(trend$Characteristic.Name),]
 
-#create a simplified list of the assessments results only
-trendsimple<-plyr::count(trend,vars=c('LAKE_ID','Waterbody_Classification','WATER','assessments'))
-trendsimple$assessments<-factor(trendsimple$assessments,levels=c("eutrophic","mesotrophic","oligotrophic","anoxic","lower DO than WQS","healthy DO","low PH","high PH","high color","UVDOC high","healthy UVDOC","high CA","low CA","hardwater","softwater","healthy","ignore ChlA from DP"))
-trendsimple<-trendsimple[order(trendsimple$LAKE_ID,trendsimple$assessments),]
+#create a simplified list of the exceedances results only
+trendsimple<-plyr::count(trend,vars=c('LAKE_ID','Waterbody_Classification','WATER','exceedances'))
+trendsimple$exceedances<-factor(trendsimple$exceedances,levels=c("eutrophic","mesotrophic","oligotrophic","anoxic","lower DO than WQS","healthy DO","low PH","high PH","high color","UVDOC high","healthy UVDOC","high CA","low CA","hardwater","softwater","healthy","ignore ChlA from DP"))
+trendsimple<-trendsimple[order(trendsimple$LAKE_ID,trendsimple$exceedances),]
 #add basin
 trendsimple$basin<-substring(trendsimple$LAKE_ID,1,2)
 trendsimple$basin<-paste("_",trendsimple$basin,sep="")
 #reorder columns
-trendsimple<-unique(trendsimple[c('basin','LAKE_ID','Waterbody_Classification','WATER','assessments','freq')])
+trendsimple<-unique(trendsimple[c('basin','LAKE_ID','Waterbody_Classification','WATER','exceedances','freq')])
 
-#spread the assessments
+#spread the exceedances
 library(tidyr)
 trendsimple <- trendsimple %>% 
-  spread(assessments, freq, fill = 0)
+  spread(exceedances, freq, fill = 0)
 
 #add a count of rejected data
 errors<-unique(trend[c('LAKE_ID','SAMPLE_ID','INFO_TYPE','Characteristic.Name','VALIDATOR_QUALIFIERS')])
@@ -211,22 +216,22 @@ trendsimple$eut.wo.err<-NA
 trendsimple$eut.wo.err<-ifelse(grepl("PHOSPHORUS",trendsimple$errors),ifelse(trendsimple$eutrophic==0,trendsimple$eutrophic,trendsimple$eutrophic-1),trendsimple$eutrophic)
 
 #add needs verification list from waterbody inventory
-waterinv<-read.csv("sections/data/Waterbody.Inventory.Input.csv", stringsAsFactors=FALSE)
-waterinv<-waterinv[!is.na(waterinv$BASIN_CODE),]
-pwl<-unique(blake[c('LakeID','PWLID')])
-pwl$basin<-substring(pwl$LakeID,1,2)
-pwl$basin<-paste("_",pwl$basin,sep="")
-waterinv<-merge(waterinv,pwl,by=c('PWLID'),all.x = TRUE)
-waterinv<-unique(waterinv[c('PWLID','LakeID','basin')])
-names(waterinv)[names(waterinv)=="LakeID"]<-"LAKE_ID"
-rm(pwl)
-waterinv$WIPWL<-"needs verification"
-trendsimple<-merge(trendsimple,waterinv,by=c('LAKE_ID','basin'),all=TRUE)
+#waterinv<-read.csv("sections/data/Waterbody.Inventory.Input.csv", stringsAsFactors=FALSE)
+#waterinv<-waterinv[!is.na(waterinv$BASIN_CODE),]
+#pwl<-unique(blake[c('LakeID','PWLID')])
+#pwl$basin<-substring(pwl$LakeID,1,2)
+#pwl$basin<-paste("_",pwl$basin,sep="")
+#waterinv<-merge(waterinv,pwl,by=c('PWLID'),all.x = TRUE)
+#waterinv<-unique(waterinv[c('PWLID','LakeID','basin')])
+#names(waterinv)[names(waterinv)=="LakeID"]<-"LAKE_ID"
+#rm(pwl)
+#waterinv$WIPWL<-"needs verification"
+#trendsimple<-merge(trendsimple,waterinv,by=c('LAKE_ID','basin'),all=TRUE)
 
 #now order table
-trendsimple<-trendsimple %>%
-  select(LAKE_ID,basin,Waterbody_Classification,WATER,WIPWL,eut.wo.err,eutrophic,everything()) %>%
-  arrange(basin,WIPWL,desc(eut.wo.err),Waterbody_Classification,desc(anoxic),desc(`lower DO than WQS`))
+#trendsimple<-trendsimple %>%
+#  select(LAKE_ID,basin,Waterbody_Classification,WATER,WIPWL,eut.wo.err,eutrophic,everything()) %>%
+#  arrange(basin,WIPWL,desc(eut.wo.err),Waterbody_Classification,desc(anoxic),desc(`lower DO than WQS`))
 
 #remove WI entries which make a mess
 #trendsimple<-trendsimple[is.na(trendsimple$WIPWL),]
