@@ -1,20 +1,18 @@
-less than thresholdMIN,between,greater than thresholdMAX,Characteristic.Name,Result.Sample.Fraction,thresholdMIN,thresholdMAX,notes
-anoxic,less than WQS,healthy DO,Bottom_Oxygen,NA,1,4,Below 1 is anoxic. Below 4 is a water quality standard violation in class A lakes
-low CA,healthy,high CA,CALCIUM,T,10,20,below 10 is low susceptability for zebra mussels. Above 20 is high susceptability. Tony suggest that 10 might be high - NYC reservoir at 6 found them.
-oligotrophic,mesotrophic,eutrophic,CHLOROPHYLL A,T,2,8,
-eutrophic,mesotrophic,oligotrophic,"DEPTH, SECCHI DISK DEPTH",NA,2,5,these values are inverse to most parameters. The higher the value the better
-eutrophic,mesotrophic,oligotrophic,"DISK, SECCHI DISK DEPTH",NA,2,5,these values are inverse to most parameters. The higher the value the better
-,,,"NITROGEN, KJELDAHL, TOTAL",T,0,0,
-,,,"NITROGEN, NITRATE (AS N)",T,0,0,
-,,,"NITROGEN, NITRATE-NITRITE",T,0,0,
-low PH,healthy,high PH,PH,NA,6.5,8.5,"PH is bad if it's too high or too low. You want it just right, in the middle."
-low PH,healthy,high PH,PH FOR COLOR ANALYSIS,NA,6.5,8.5,
-oligotrophic,mesotrophic,eutrophic,PHOSPHORUS,T,0.01,0.02,for epilimnion only. Hypolimnion samples are informative only (deep water phosphorus levels indicate for narrative only 1. signifcant internal load and 2. susceptability for bloom after lake turnover)
-,,,PHOSPHORUS,D,0,0,
-softwater,healthy,hardwater,SPECIFIC CONDUCTANCE,NA,125,250,below 125 is soft water; above 250 is hardwater
-,,,"TEMPERATURE, WATER",NA,0,0,
-low TNTP,healthy,high TNTP,TNTP,T,10,20,these values are inverse: below 10 is where we see cyano blooms; above 20 we see blooms dominated other phytoplankton
-healthy,healthy,high color,TRUE COLOR,T,10,30,above 30 is visible brown color. It alters secchi measurements. Below 10 you can't see it at all.
-healthy,high UVDOC,,UVDOC,NA,4,4,UV254/DOC also known as SUVA. Greater than this is drinking water supply issue
-,,,XCHLOROPHYLL A (PROBE),NA,0,0,remove
-,,,XTN,,,,ratios coming from scott
+Designated_Use,Characteristic.Name,Result.Sample.Fraction,direction,threshold,units,simpleWC,simpleT,Characteristic.Name2,Result.Sample.Fraction2,direction2,threshold2,2,notes
+drinking_water,IRON,,>,300,ug/L,,,,,,,,
+drinking_water,MANGANESE,,>,300,ug/L,,,,,,,,
+drinking_water,ARSENIC,,>,50,ug/L,,,,,,,,
+drinking_water,"NITROGEN, NITRATE (AS N)",,>,10,mg/L,,,,,,,,
+drinking_water,CHLORIDE,,>,250,mg/L,,,,,,,,
+drinking_water,CHLOROPHYLL A,,>,4,ug/L,A,,,,,,,
+drinking_water,CHLOROPHYLL A,,>,6,ug/L,AA,,,,,,,
+drinking_water,UVDOC,,>,4,,,,,,,,,"UV254/DOC,  also known as SUVA"
+recreation,"DEPTH, SECCHI DISK DEPTH",,<,1.2,m,,,TRUE COLOR,,<,50,,
+recreation,PHOSPHORUS,T,>,20,ug/L,,,,,,,,
+recreation,HYPO_DO,,<,4,mg/L,,,,,,,,impaired if all DO measurements below the thermocline are below this threshold 
+aquatic_life,PH,,<,6,,,,,,,,,
+aquatic_life,PH,,>,9,,,,,,,,,
+aquatic_life,EPI_DO,,<,5,mg/L,,,,,,,,impaired if any DO measurements above the thermocline are below this threshold
+aquatic_life,HYPO_DO,,<,1,mg/L,,T,,,,,,impaired if all DO measurements below the thermocline are below this threshold 
+aquatic_life,HYPO_DO,,<,1,mg/L,,TS,,,,,,impaired if all DO measurements below the thermocline are below this threshold 
+aquatic_life,AMMONIA,,,threshold,,,,,,,,,see ph/temp specific table of thresholds

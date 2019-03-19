@@ -82,57 +82,56 @@ intensive<-intensive[intensive$basin=="17"|
                        intensive$LAKE_ID=="1301THE1034"|
                        intensive$LAKE_ID=="1301UWB1031",]
 
-#remove erroneous DP infotypes
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59017"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59018"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59019"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59020"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59021"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59022"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59023"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59024"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59025"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59026"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59027"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59028"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59103"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59120"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive$INFO_TYPE<-ifelse(intensive$SAMPLE_ID=="59121"&&intensive$INFO_TYPE=="DP","OW",intensive$INFO_TYPE)
-intensive<-unique(intensive)
-
 ############################################################################################################
 #ADDING THRESHOLDS
 
-#these thresholds will define thresholds for future plots
-thresholds<-read.csv("sections/data/thresholds.csv", stringsAsFactors=FALSE)
-thresholds<-thresholds[thresholds$Characteristic.Name!=0,]
-thresholds$notes<-NULL
+#adding deep water DO values
+DO<-intensive[intensive$Characteristic.Name=='DISSOLVED OXYGEN (DO)',]
+DO<-DO[!is.na(DO$Characteristic.Name),]
+DOsmall<-aggregate(Depth~SAMPLE_ID,DO,max)
+DO<-merge(DOsmall,DO,by=c('SAMPLE_ID','Depth'),all.x=TRUE)
+rm(DOsmall)
+DO$Characteristic.Name[DO$Characteristic.Name=="DISSOLVED OXYGEN (DO)"]<-"Bottom_Oxygen"
+DO$Result.Unit<-"mg/L"
+trend<-merge(intensive,DO,all=TRUE)
+trend<-trend[!is.na(trend$Characteristic.Name),]
+rm(DO)
 
-
-#simplify waterbody classification
-intensive$simpleWC<-NA
-intensive$simpleWC<-ifelse(grepl("C",intensive$Waterbody_Classification),"C",intensive$simpleWC)
-intensive$simpleWC<-ifelse(grepl("B",intensive$Waterbody_Classification),"B",intensive$simpleWC)
-intensive$simpleWC<-ifelse(grepl("A",intensive$Waterbody_Classification),"A",intensive$simpleWC)
-intensive$simpleWC<-ifelse(grepl("AA",intensive$Waterbody_Classification),"AA",intensive$simpleWC)
-intensive<-intensive[!is.na(intensive$simpleWC),]
-intensive$simpleT<-NA
-intensive$simpleT<-ifelse(grepl("T",intensive$Waterbody_Classification),"T",intensive$simpleT)
-intensive$simpleT<-ifelse(grepl("TS",intensive$Waterbody_Classification),"TS",intensive$simpleT)
-
-############################################################################################################
-#class A waters
-
-#pulling class A waters to identify possible impairments to the drinking water designated use
-PWS<-intensive[grepl("A",intensive$simpleWC),]
+#adding TN:TP
+#pull unique values for non-relavent columns to add back in later
+samples<-unique(trend[c('SAMPLE_ID','LAKE_ID','LOCATION_ID','SAMPLE_NAME','INFO_TYPE','SAMPLE_DATE','TIME','START_DEPTH','END_DEPTH','WATER','WATER','Waterbody_Classification')])
+NOX<-trend[trend$Characteristic.Name=='NITROGEN, NITRATE-NITRITE',]
+names(NOX)[names(NOX)=="Result.Value"]<-"NOX"
+NOX<-unique(NOX[c('SAMPLE_ID','NOX')])
+TKN<-trend[trend$Characteristic.Name=='NITROGEN, KJELDAHL, TOTAL',]
+names(TKN)[names(TKN)=="Result.Value"]<-"TKN"
+TKN<-unique(TKN[c('SAMPLE_ID','TKN')])
+TP<-trend[trend$Characteristic.Name=='PHOSPHORUS'&trend$Result.Sample.Fraction=='T',]
+names(TP)[names(TP)=="Result.Value"]<-"TP"
+TP<-unique(TP[c('SAMPLE_ID','TP')])
+TNTP<-merge(NOX,TKN,all=TRUE)
+TNTP<-merge(TNTP,TP,all=TRUE)
+TNTP<-TNTP[!is.na(TNTP$SAMPLE_ID),]
+TNTP<-TNTP[!is.na(TNTP$NOX),]
+TNTP<-TNTP[!is.na(TNTP$TKN),]
+TNTP<-TNTP[!is.na(TNTP$TP),]
+rm(list=c('NOX','TKN','TP'))
+TNTP$Characteristic.Name<-"TNTP"
+TNTP$Result.Value<-(TNTP$NOX+TNTP$TKN)/TNTP$TP
+#now add back in non-relavent columns
+TNTP<-merge(TNTP,samples,all.x = TRUE)
+TNTP<-unique(TNTP[c('SAMPLE_ID','Characteristic.Name','Result.Value','LAKE_ID','LOCATION_ID','SAMPLE_NAME','INFO_TYPE','SAMPLE_DATE','TIME','START_DEPTH','END_DEPTH','WATER','Waterbody_Classification')])
+#merge back with trend
+trend<-merge(trend,TNTP,all=TRUE)
+rm(list=c('TNTP','samples'))
 
 #adding UV254:DOC
 #pull unique values for non-relavent columns to add back in later
-samples<-unique(PWS[c('SAMPLE_ID','LAKE_ID','LOCATION_ID','SAMPLE_NAME','INFO_TYPE','SAMPLE_DATE','TIME','START_DEPTH','END_DEPTH','WATER','WATER','Waterbody_Classification','DATA_PROVIDER','basin','simpleWC','simpleT')])
-UV254<-PWS[PWS$Characteristic.Name=='UV 254',]
+samples<-unique(trend[c('SAMPLE_ID','LAKE_ID','LOCATION_ID','SAMPLE_NAME','INFO_TYPE','SAMPLE_DATE','TIME','START_DEPTH','END_DEPTH','WATER','WATER','Waterbody_Classification')])
+UV254<-trend[trend$Characteristic.Name=='UV 254',]
 names(UV254)[names(UV254)=="Result.Value"]<-"UV254"
 UV254<-unique(UV254[c('SAMPLE_ID','UV254')])
-DOC<-PWS[PWS$Characteristic.Name=='DISSOLVED ORGANIC CARBON',]
+DOC<-trend[trend$Characteristic.Name=='DISSOLVED ORGANIC CARBON',]
 names(DOC)[names(DOC)=="Result.Value"]<-"DOC"
 DOC<-unique(DOC[c('SAMPLE_ID','DOC')])
 UVDOC<-merge(UV254,DOC,all=TRUE)
@@ -144,69 +143,18 @@ UVDOC$Characteristic.Name<-"UVDOC"
 UVDOC$Result.Value<-(UVDOC$UV254)/UVDOC$DOC
 #now add back in non-relavent columns
 UVDOC<-merge(UVDOC,samples,all.x = TRUE)
-UVDOC<-unique(UVDOC[c('SAMPLE_ID','Characteristic.Name','Result.Value','LAKE_ID','LOCATION_ID','SAMPLE_NAME','INFO_TYPE','SAMPLE_DATE','TIME','START_DEPTH','END_DEPTH','WATER','Waterbody_Classification','DATA_PROVIDER','basin','simpleWC','simpleT')])
-#create trend file
-trend<-merge(PWS,UVDOC,all=TRUE)
+UVDOC<-unique(UVDOC[c('SAMPLE_ID','Characteristic.Name','Result.Value','LAKE_ID','LOCATION_ID','SAMPLE_NAME','INFO_TYPE','SAMPLE_DATE','TIME','START_DEPTH','END_DEPTH','WATER','Waterbody_Classification')])
+#merge back with trend
+trend<-merge(trend,UVDOC,all=TRUE)
 rm(list=c('UVDOC','samples'))
 
-#separate out chlorophyll which has to merge by class as well as characteristic name
-trend.chl<-trend[trend$Characteristic.Name=="CHLOROPHYLL A",]
-#remove depth profile values
-trend.chl<-trend.chl[trend.chl$INFO_TYPE=="OW",]
-trend<-trend[trend$Characteristic.Name!="CHLOROPHYLL A",]
+#these thresholds will define oligo meso and eutrophic thresholds for future plots
+thresholds<-read.csv("sections/data/thresholds.csv", stringsAsFactors=FALSE)
+thresholds<-thresholds[thresholds$thresholdMAX!=0,]
+thresholds$notes<-NULL
 
 #add thresholds
-trend<-merge(trend,thresholds,by=c('Characteristic.Name'),all.x=TRUE)
-trend<-trend[!is.na(trend$threshold),]
-trend<-trend[trend$Designated_Use=="drinking_water",]
-trend<-trend[!is.na(trend$Result.Value),]
-trend.chl<-merge(trend.chl,thresholds,by=c('Characteristic.Name','simpleWC'),all.x = TRUE)
-trend.chl<-trend.chl[!is.na(trend.chl$threshold),]
-trend.chl<-trend.chl[trend.chl$Designated_Use=="drinking_water",]
-trend.chl<-trend.chl[!is.na(trend.chl$Result.Value),]
-
-
-#identify possibly impaired
-trend$PIdrinking<-NA
-trend$PIdrinking<-ifelse(trend$Result.Value>trend$threshold,1,trend$PIdrinking)
-trend<-unique(trend[c('SAMPLE_ID','Characteristic.Name','Result.Value','LAKE_ID','LOCATION_ID','SAMPLE_NAME','INFO_TYPE','SAMPLE_DATE','TIME','START_DEPTH','END_DEPTH','WATER','Waterbody_Classification','DATA_PROVIDER','basin','PIdrinking')])
-#now for Chl
-trend.chl$PIdrinking<-NA
-trend.chl$PIdrinking<-ifelse(trend.chl$Result.Value>trend.chl$threshold,1,trend.chl$PIdrinking)
-trend.chl<-unique(trend.chl[c('SAMPLE_ID','Characteristic.Name','Result.Value','LAKE_ID','LOCATION_ID','SAMPLE_NAME','INFO_TYPE','SAMPLE_DATE','TIME','START_DEPTH','END_DEPTH','WATER','Waterbody_Classification','DATA_PROVIDER','basin','PIdrinking')])
-#merge together
-trend<-merge(trend,trend.chl,all=TRUE)
-rm(trend.chl)
-
-######################################################################################################################
-#merge back to intensive
-intensive<-merge(intensive,trend,all = TRUE)
-intensive<-intensive[!is.na(intensive$Characteristic.Name),]
-
-#create simplified count table
-#remove rejected data
-#create simplified table
-intsimple<- intensive %>%
-  dplyr::select(LAKE_ID,WATER,PIdrinking) %>%
-  dplyr::group_by(LAKE_ID,WATER) %>%
-  dplyr::summarize(PIdrinking = sum(PIdrinking, na.rm = TRUE)) %>%
-  dplyr::ungroup()
-head(intsimple)
-unique(intsimple$PIdrinking)
-
-
-############################
-#errors
-#iron is in Depth profile data???!!!!
-
-
-
-
-
-
-
-
-
+trend<-merge(trend,thresholds,by=c('Characteristic.Name','Result.Sample.Fraction'),all=TRUE)
 
 #calculate exceedances state
 trend$exceedances<-NA
