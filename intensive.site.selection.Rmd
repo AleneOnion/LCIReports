@@ -1,0 +1,104 @@
+---
+title: "Ranked Sites for Intensive Sampling"
+author: "NYS Department of Environmental Conservation"
+date: "`r format(Sys.Date(),format='%B %d, %Y')`"
+output:  
+  html_document:
+    toc: true
+    toc_depth: 6
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+##Introduction
+
+The purpose of this document is to rank the lakes screened in 2018 or sampled in the past 20 yrs by possible impacts for the purpose of selecting lakes that should be sampled intensively in 2019.
+
+##Thresholds
+The following are the thresholds used to identify possible impacts to drinking water, recreation, aquatic life, and trophic status. In addition to these, we also identified lakes that had any HAB detected since 2012.
+
+```{r, echo=FALSE, results='asis'}
+library(DT)
+DT::datatable(thresholds, options = list(scrollX = TRUE,columnDefs = list(list(className = 'dt-center', targets = 0:5))))
+```
+
+##Ranked list of Lakes
+
+The data used to produce this ranked list include screening 2018 data as well any data collected in the past 20 yrs from lakes listed in the waterbody inventory as needs verification, unassessed, or having minor impacts.  
+
+The lakes are ranked in the following order: PWS > Possible impacts to drinking water > Possible impacts to recreation > Possible impacts to aquatic life > Harmful algal bloom detected at least once since 2012 > Indicators of eutrophic conditions.  
+
+Historically, we've allocated $50,000 for LCI analytic costs, 2/3rds of which for Intensive sampling. The final column gives the analytic cost for intensively sampling each lake. If we stick with the 2/3rds of 50K budget, then that would allow us to sample all the sites through Silver Lake on this list. This is a satisfying cut off because that is the last lake that shows any impact to drinking water, recreation, aquatic life or HABs.
+
+Total analytic costs for the lakes through Silver lake = $33,184.
+
+```{r, echo=FALSE, results='asis'}
+library(DT)
+DT::datatable(trendsimple, options = list(scrollX = TRUE))
+```
+
+##Depth profiles  
+
+I've included the depth profiles for all the lakes for reference only.  
+
+```{r, echo=FALSE, results='asis'}
+profile<-data[data$INFO_TYPE=="DP",]
+profile<-unique(profile[c('LAKE_ID','WATER','LOCATION_ID','Characteristic.Name','Depth','Result.Value','SAMPLE_DATE')])
+profile$Characteristic.Name[profile$Characteristic.Name==""] <- NA
+profile<-profile[!is.na(profile$Characteristic.Name),]
+#restrict to only the parameters that should be in a profile
+profile<-profile[profile$Characteristic.Name=="DISSOLVED OXYGEN (DO)"|
+                 profile$Characteristic.Name=="OXIDATION REDUCTION POTENTIAL (ORP)"|
+                 profile$Characteristic.Name=="PH"|
+                 profile$Characteristic.Name=="SPECIFIC CONDUCTANCE"|
+                 profile$Characteristic.Name=="TEMPERATURE, WATER"|
+                 profile$Characteristic.Name=="DISSOLVED OXYGEN SATURATION",]
+#restrict to only those lakes in trendsimple
+lakes<-unique(trendsimple[c('LAKE_ID','basin')])
+profile<-merge(lakes,profile,by=c('LAKE_ID'),all.x=TRUE)
+profile<-unique(profile[c('LAKE_ID','WATER','LOCATION_ID','Characteristic.Name','Depth','Result.Value','SAMPLE_DATE')])
+rm(lakes)
+profile<-profile[!is.na(profile$Characteristic.Name),]
+lakes<-unique(profile$LAKE_ID)
+nlakes<-length(lakes)
+
+for(i in 1:nlakes){
+temp<-profile[profile$LAKE_ID==lakes[i],]
+display<-unique(temp$LAKE_ID)
+display<-paste("  \n","###",display,"  \n",sep="")
+cat(display)
+
+if((length(temp$Result.Value))!=0){
+library(ggplot2)
+library(gridExtra)
+params<-unique(temp$Characteristic.Name)
+nparams<-length(params)
+p<-list()
+for(j in 1:nparams){
+  temp1<-temp[temp$Characteristic.Name==params[j],]
+  temp1<-temp1[!is.na(temp1$Characteristic.Name),]
+  if((length(temp1$Result.Value))!=0){
+  temp1<-temp1[order(temp1$SAMPLE_DATE,temp1$Depth),]
+  temp1$SAMPLE_DATE<-format(temp1$SAMPLE_DATE,"%Y.%m.%d")
+  temp1$SAMPLE_DATE<-factor(temp1$SAMPLE_DATE,unique(temp1$SAMPLE_DATE))
+  p[[j]]<-(ggplot(temp1[order(temp1$Depth,temp1$SAMPLE_DATE),],aes(Result.Value,Depth)) +
+    geom_point() +
+    geom_path(aes(color=factor(SAMPLE_DATE))) +
+    scale_y_reverse(lim = c((max(temp$Depth)+0.25),0)) +
+    theme(axis.title.x = element_blank()) +
+    labs(title=params[j], y="Depth (m)",colour = "")) 
+  }
+  rm(list=c('temp1'))
+}
+
+do.call(grid.arrange,c(p,ncol=2))
+cat("  \n")
+cat("  \n")
+}
+rm(list=c('temp','j','params','nparams','p','display'))
+}
+rm(list=c('i','lakes','nlakes','profile'))
+```

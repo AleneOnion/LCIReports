@@ -1,0 +1,19 @@
+CHEMICAL_NAME,Cost,all lakes,class_a_epi,class_a_hyp,class_a_unstratified,class_b_epi,class_b_hyp,class_b_unstratified
+"ALKALINITY, TOTAL (AS CACO3)",14,1,,,,,,
+CHLORIDE (AS CL),11,,,1,1,,1,1
+CHLOROPHYLL A,60,,1,,1,1,,1
+COLOR,7,1,,,,,,
+ARSENIC,8,,,1,1,,,
+IRON,5,,,1,1,,,
+MANGANESE,5,,,1,1,,,
+"NITROGEN, AMMONIA (AS N)",13,1,,,,,,
+"NITROGEN, KJELDAHL, TOTAL",17,1,,,,,,
+"NITROGEN, NITRATE-NITRITE",13,1,,,,,,
+PHOSPHORUS,14,1,,,,,,
+SOLUBLE PHOSPHORUS,14,1,,,,,,
+SULFATE (AS SO4),11,,1,1,1,,,
+UV254,22,,1,1,1,,,
+TOTAL ORGANIC CARBON,15,,,,,1,1,1
+DOC,15,,1,1,1,,,
+Calcium,5,,1,,1,1,,1
+cost,,,205,169,234,172,118,183

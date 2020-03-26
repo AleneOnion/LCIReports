@@ -1,0 +1,98 @@
+---
+title: "Swimming"
+author: "Alene Onion"
+date: "January 3, 2019"
+output:  
+  html_document:
+    toc: true
+    toc_depth: 6
+    toc_float: true
+---
+
+##Swimming  
+
+Components:  
+```{r, echo=FALSE,results='asis'}
+short<-c('DB','Clarity','Control','sTOX','sHABs','TOX','BGA','CT','HABn')
+definition<-c('number of days beaches were closed',
+              'Percentage of clarity observations since 2011 (or 2018) less than 1.21',
+              'Control measures',
+              'Count of shore samples >4 since 2011 (or 2018)',
+              'Count of shoreline habs that have FP-BGChl reading over 25 since 2011 (or 2018)',
+              'Count of surface samples >4 since 2011 (or 2018)',
+              'Surface readings of FP-BGChl over 25 since 2011 (or 2018)',
+              'Trend score for clarity since sampling began',
+              'Any HAB notification')
+components<-data.frame(short,definition)
+knitr::kable(components)
+rm(list=c('short','definition','components'))
+```
+
+Additional definitions/Notes:  
+
+* Trend score = RegScore x Pscore x SIGN
+    + RegScore = 0 (if n<5 | r2<0.3), 1 (if 0.03<=r2<0.5), 2 (if r2>=0.5)  
+    + PScore = 0 (if n<5 | p>0.05), 1 (if 0.01<p<=0.05), 2 (if p<=0.01)
+    + SIGN = 0 (if slope=0), 1 (if slope is +), -1 (if slope is -)
+  
+
+Components for av year: 
+
+```{r, echo=FALSE,results='asis'}
+score<-c('-1',0,1.2,1.3,1.4,1.5,1.6,2.1,2.2,2.3,2.4,2.5,2.6,2.8,2.9,3,3.1,3.7,3.8)
+DB<-c('','no beach','','','','','','','','','','','','','>10','0<x<10','','','')
+Clarity<-c('','<=10','','','','','','','','','','','','>10','','','','','>50')
+Control<-c('','no','','','','','','','','','','','','','','','','!no','')
+sTOX<-c('no beach','0','','','','','1','','','','','','>1','','','','','','')
+sHABs<-c('no beach','0','','','','1','','','','','','>1','','','','','','','')
+TOX<-c('','<1','','','1','','','','','','>1','','','','','','','','')
+BGA<-c('','<1','','1','','','','','','>1','','','','','','','','','')
+CT<-c('','any other score','=2','','','','','','=4','','','','','','','','','','')
+HABn<-c('no beach','no','','','','','','only 1','','','','','','','','','>1','','')
+SWIM<-data.frame(score,DB,Clarity,Control,sTOX,sHABs,TOX,BGA,CT,HABn)
+knitr::kable(SWIM)
+rm(list=c('SWIM','score','DB','Clarity','Control','sTOX','sHABs','TOX','BGA','CT','HABn'))
+
+#Questions for Scott:  
+
+#* Control: What would these be? Where is this data collected?  
+#    + Mechanical harvesting, copper sulfate for blooms. Primarily those for which we issue permits (evenif reported in cslap #form).  
+#* sTOX: what is this parameter in the database???  
+#    + 4ug/L of microcystin
+#* HABn: excel descriptor is >1 but the formula looks for any at all  
+#* HABn: I'm presuming this is the listing on the website?  
+#* sHABs18: =0 is repeated in this equation: =IF($B$9="no",-1,IF($G$21=0,0,IF($G$21=0,0,IF($G$21=1,1.7,2.7))))  
+#    + just a simple error
+#* AvYr: for total score, shouldn't it be 2 if it doesn't have a beach?  
+#    + If class B, then it still should satisfy these criteria
+
+```	
+
+Components for 2018:  
+
+```{r, echo=FALSE,results='asis'}
+score<-c('-1','0','1.5','1.6','1.7','1.8','2.4','2.5','2.6','2.7','2.8','3.4','3.9')
+Clarity<-c('','<=10','','','','','','','','','>10','','>50')
+sTOX<-c('no beach','0','','','','1','','','','','>1','','')
+sHABs<-c('no beach','0','','','1','','','','','>1','','','')
+TOX<-c('no beach','<1|0','','1','','','','','>1','','','','')
+BGA<-c('no beach','<1','1','','','','','>1','','','','','')
+HABn<-c('no beach','"no"','','','','','only 1','','','','','>1','')
+SWIM18<-data.frame(score,Clarity,sTOX,sHABs,TOX,BGA,HABn)
+knitr::kable(SWIM18)
+rm(list=c('SWIM18','score','Clarity','sTOX','sHABs','TOX','BGA','HABn'))
+```	
+
+Total Score for Swimming  
+```{r, echo=FALSE,results='asis'}
+score<-c(2,3,4,5,6)
+translation<-c('Not Known','Supported/Good','Threatened/Fair','Stressed/Poor','Impaired')
+avYear<-c('','0>max(SWIM)<1','max(SWIM)>1','max(SWIM)>2','max(SWIM)>3')
+y2018<-c('','0>max(SWIM18)<1','max(SWIM18)=1','max(SWIM18)=2','max(SWIM18)=3')
+SwimScore<-data.frame(score,translation,avYear,y2018)
+knitr::kable(SwimScore)
+rm(list=c('score','avYear','SwimScore','translation','y2018'))
+```	
+
+Primary Issue  
+The primary issue is simply the highest scoring component in the list  

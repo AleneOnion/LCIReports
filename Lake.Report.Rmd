@@ -1,0 +1,469 @@
+---
+title: "`r titles`"
+author: "NYS Department of Environmental Conservation"
+date: "`r format(Sys.Date(),format='%B %d, %Y')`"
+output:  
+  html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+# {.tabset}
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+template1 <- "Lake Name: %s\n
+Lake acreage: %s \n
+County: %s \n
+PWLID: %s\n
+Waterbody Classification: %s\n
+Coordinates: %s,%s \n
+Is this waterbody a public water supply: %s\n
+Are there DOH desingated beaches on this waterbody: %s\n
+\n 
+\n"
+laketemp<-unique(lake1[c('LAKE_ID','WATER','ACRES','County','PWLID','Waterbody_Classification','Y_Coordinate','X_Coordinate','PWS','Beaches')])
+laketemp<-laketemp %>% 
+  arrange(PWLID,Waterbody_Classification,X_Coordinate,Y_Coordinate,County,ACRES) %>% 
+  distinct(LAKE_ID,.keep_all=TRUE,.na.rm = TRUE)
+cat(sprintf(template1,laketemp$WATER[1],laketemp$ACRES[1],laketemp$County[1],laketemp$PWLID[1],laketemp$Waterbody_Classification[1],laketemp$Y_Coordinate[1],laketemp$X_Coordinate[1],laketemp$PWS[1],laketemp$Beaches[1]))
+rm(template1)
+
+cat(' \n\n ')
+```
+##Water Quality Standards {.tabset}
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+
+library(knitr)
+library(DT)
+
+template1 <- "###Applicable Water Quality Standards:\n
+%s \n
+PWLID: %s\n
+Waterbody Classification: %s\n
+The water quality standards applied to this waterbody are:\n
+\n " 
+
+template2 <- " \n The specific water quality standard violations in the %s data set are as follows: \n\n\n"
+template3 <- " \n There are no water quality standards violations in this data set for %s. \n\n\n\n"
+
+description<-unique(hypoepi1[c('LAKE_ID','WATER','PWLID','Waterbody_Classification')])
+description2<-unique(profiles1[c('LAKE_ID','WATER','PWLID','Waterbody_Classification')])
+description<-merge(description,description2,all=TRUE)
+rm(description2)
+cat(sprintf(template1, description$WATER[1],description$PWLID[1],description$Waterbody_Classification[1]))
+
+#create the WQS table
+description$simpleWC<-NA
+description$simpleWC<-ifelse(grepl("D",description$Waterbody_Classification),"D",description$simpleWC)
+description$simpleWC<-ifelse(grepl("C",description$Waterbody_Classification),"C",description$simpleWC)
+description$simpleWC<-ifelse(grepl("B",description$Waterbody_Classification),"B",description$simpleWC)
+description$simpleWC<-ifelse(grepl("A",description$Waterbody_Classification),"A",description$simpleWC)
+description$simpleT<-NA
+description$simpleT<-ifelse(grepl("T",description$Waterbody_Classification),"T",description$simpleT)
+description$simpleT<-ifelse(grepl("TS",description$Waterbody_Classification),"TS",description$simpleT)
+description$simpleT1<-description$simpleT
+description$simpleT<-NULL
+
+desthresh<-unique(description[c('simpleWC','simpleT1')])
+minithresh<-merge(desthresh,thresh,by=c('simpleWC'),all.x=TRUE)
+library(tidyr)
+minithresh$simpleT1<-minithresh$simpleT1 %>% 
+  replace_na(" ")
+minithresh$simpleT<-minithresh$simpleT %>% 
+  replace_na(" ")
+minithresh<-subset(minithresh,Characteristic.Name=="DISSOLVED OXYGEN (DO)"&simpleT==simpleT1|Characteristic.Name!="DISSOLVED OXYGEN (DO)")
+minithresh<-unique(minithresh[c('Characteristic.Name','limnion','simpleF','direction','threshold')])
+minithresh<-minithresh %>% 
+  rename(layer=limnion,
+         Fraction=simpleF)
+minithresh$layer<-minithresh$layer %>% 
+  replace_na(" ")
+minithresh$Fraction<-minithresh$Fraction %>% 
+  replace_na(" ")
+knitr::kable(minithresh)
+rm(list=c('minithresh','desthresh'))
+
+cat(' \n\n ')
+```
+
+
+
+###WQS Violations
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+viol1<-hypoepi1[hypoepi1$violation=="WQS violation",]
+viol2<-profiles1[profiles1$violation=="WQS violation",]
+viol<-merge(viol1,viol2,all=TRUE)
+
+if(length(viol$SAMPLE_DATE)!=0){
+  cat(sprintf(template2,description$WATER))
+viol<-viol[!is.na(viol$Characteristic.Name),]
+viol<-unique(viol[c('SAMPLE_DATE','Characteristic.Name','INFO_TYPE','Result.Sample.Fraction','Result.Value','Result.Unit')])
+viol<-viol %>%
+  arrange(INFO_TYPE,Characteristic.Name,Result.Sample.Fraction,SAMPLE_DATE)
+knitr::kable(viol)
+}
+if(length(viol$SAMPLE_DATE)==0){
+  cat(sprintf(template3,description$WATER))
+}
+rm(list=c('description','template1','template2','template3','viol1','viol2','viol'))
+
+
+cat(' \n\n ')
+```
+
+##Trophic State {.tabset}
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+############################################################################################################
+#Calculate Trophic State Index
+############################################################################################################
+trophic<-hypoepi1 %>% 
+  filter(Characteristic.Name %in% c("DEPTH, SECCHI DISK DEPTH"))
+trophic2<-hypoepi1 %>% 
+  filter(Characteristic.Name %in% c("PHOSPHORUS")) %>% 
+  filter(Result.Sample.Fraction %in% c("T")) %>% 
+  filter(limnion %in% c("OW"))
+trophic3<-hypoepi1 %>% 
+  filter(Characteristic.Name %in% c("CHLOROPHYLL A"))  
+trophic<-merge(trophic,trophic2,all=TRUE)
+trophic<-merge(trophic,trophic3,all=TRUE)
+rm(list=c('trophic2','trophic3'))
+trophic$Result.Value<-as.numeric(trophic$Result.Value)
+trophic<-trophic[!is.na(trophic$Characteristic.Name),]
+
+if(length(trophic$Characteristic.Name)!=0){
+trophic$TSI<-NA
+trophic$TSI<-ifelse(trophic$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH",
+                     ifelse(trophic$Result.Value>0,(60-(14.41*(log(trophic$Result.Value)))),trophic$TSI),
+                     trophic$TSI)
+
+trophic$TSI<-ifelse(trophic$Characteristic.Name=="PHOSPHORUS",
+                           ifelse(trophic$Result.Value>0,(4.15+(14.42*(log(1000*trophic$Result.Value)))),trophic$TSI),trophic$TSI)
+trophic$TSI<-ifelse(trophic$Characteristic.Name=="CHLOROPHYLL A",
+                           ifelse(trophic$Result.Value>0,(30.6+(14.42*(log(trophic$Result.Value)))),trophic$TSI),
+                           trophic$TSI)
+trophic<-trophic[!is.na(trophic$TSI),] 
+}
+############################################################################################################
+#Display tables
+############################################################################################################
+
+#cat("###References ")
+#cat(" \n\nThe national and state specific thresholds for trophic state and trophic state index are described in detail on pg 57-58 of the following CSLAP Annual Report:\n")
+#cat("<a href='https://tinyurl.com/y2x8x6w5'>2009 CSLAP Annual Report<a/>")
+#cat("     \n\n")
+cat("###Trophic State \n\n")
+
+cat("in NY State, the thresholds for each trophic status are as follows\n\n")
+trophics<-data.frame(
+  Trophic_Status=c('eutrophic','mesotrophic','oligotrophic','eutrophic','mesotrophic','oligotrophic','eutrophic','mesotrophic','oligotrophic'),
+  parameter=c('chlorophyll A','chlorophyll A','chlorophyll A','secchi depth','secchi depth','secchi depth','epilimnion phosphorus','epilimnion phosphorus','epilimnion phosphorus'),
+  threshold=c('> 8 ug/L','2-8 ug/L','< 2 ug/L','< 2 m','2-5 m','> 5 m','> 0.02 mg/L','0.01-0.02 mg/L','< 0.01 mg/L')
+)
+library(tidyr)
+trophics<-trophics %>% 
+  spread(Trophic_Status,threshold)
+library(knitr)
+knitr::kable(trophics)
+rm(trophics)
+
+cat(" \n\nTrophic State of this waterbody: \n\n ")
+library(dplyr)
+
+if(length(trophic$Characteristic.Name)!=0){
+trophicass<-trophic %>% 
+  group_by(Characteristic.Name,year) %>% 
+  summarize(annualav= mean(Result.Value)) %>% 
+  ungroup()
+trophicass$trophic<-NA
+trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="CHLOROPHYLL A" & trophicass$annualav<2,"oligotrophic",trophicass$trophic)
+trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="CHLOROPHYLL A" & trophicass$annualav>2,"mesotrophic",trophicass$trophic)
+trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="CHLOROPHYLL A" & trophicass$annualav>8,"eutrophic",trophicass$trophic)
+trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="PHOSPHORUS" & trophicass$annualav<0.01,"oligotrophic",trophicass$trophic)
+trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="PHOSPHORUS" & trophicass$annualav>0.01,"mesotrophic",trophicass$trophic)
+trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="PHOSPHORUS" & trophicass$annualav>0.02,"eutrophic",trophicass$trophic)
+trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH" & trophicass$annualav<2,"eutrophic",trophicass$trophic)
+trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH" & trophicass$annualav>2,"mesotrophic",trophicass$trophic)
+trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH" & trophicass$annualav>5,"oligotrophic",trophicass$trophic)
+trophicass$annualav<-NULL
+trophicass<-trophicass %>% 
+  spread(Characteristic.Name,trophic)
+library(knitr)
+cat("Annual samples from this waterbody are averaged to give the following trophic status for every year of sampling:\n\n")
+knitr::kable(trophicass)
+}
+if(length(trophic$Characteristic.Name)==0){
+ cat("There are no phosphorus, chlorophyll, or secchi depth data available to calculate the trophic status in this waterbody.\n\n") 
+}
+rm(trophicass)
+
+cat(" \n\n###Trophic State Index \n\n ")
+
+cat("The trophic state index is a log transform of chlorophyll, secchi, and phosphorus readings so that they can be compared on a similar scale. \n\n
+The log transforms for each parameter are as follows:\n\n
+TSI (water clarity) = 60 – 14.41 x ln(Zsd), where Zsd = Secchi disk transparency in meters\n
+TSI (phosphorus) = 14.42 x ln(TP) + 4.15, where TP = total phosphorus in ug/l\n
+TSI (chlorophyll a) = 9.81 x ln(Chl.a) + 30.6, where Chl.a = chlorophyll a in ug/l \n\n
+The national and NYS specific thresholds for these transformed values are as follows\n\n")
+trophics<-data.frame(
+  Trophic_Status=c('eutrophic','mesotrophic','oligotrophic','eutrophic','mesotrophic','oligotrophic','eutrophic','mesotrophic','oligotrophic'),
+  parameter=c('chlorophyll A','chlorophyll A','chlorophyll A','secchi depth','secchi depth','secchi depth','epilimnion phosphorus','epilimnion phosphorus','epilimnion phosphorus'),
+  threshold=c('>51','37-51','<37','>50','37-50','<37','>47','37-47','<37')
+)
+library(tidyr)
+trophics<-trophics %>% 
+  spread(Trophic_Status,threshold)
+library(knitr)
+knitr::kable(trophics)
+rm(trophics)
+
+cat(" \n\nTrophic State Index of this waterbody: \n\n ")
+secchi<-trophic[trophic$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH",]
+phosph<-trophic[trophic$Characteristic.Name=="PHOSPHORUS",]
+chla<-trophic[trophic$Characteristic.Name=="CHLOROPHYLL A",]
+trophicass<-merge(secchi,phosph,all=TRUE)
+trophicass<-merge(trophicass,chla,all=TRUE)
+rm(list=c('secchi','phosph','chla'))
+
+library(dplyr)
+if(length(trophic$Characteristic.Name)!=0){
+trophicass1<-trophicass %>%
+  group_by(year) %>% 
+  summarize(averageTSI=mean(TSI)) %>% 
+  ungroup()
+trophicass<-trophicass %>% 
+  group_by(Characteristic.Name,year) %>% 
+  summarize(annualav= mean(TSI)) %>% 
+  ungroup()
+if(length(trophicass$Characteristic.Name)!=0){
+trophicass<-trophicass %>% 
+  spread(Characteristic.Name,annualav)
+trophicass<-merge(trophicass,trophicass1,by=c('year'),all=TRUE)
+trophicass$average.TSI<-NA
+trophicass$average.TSI<-ifelse(!is.na(trophicass$averageTSI),
+                               ifelse(trophicass$averageTSI<37,"oligotrophic",trophicass$average.TSI),
+                               trophicass$average.TSI)
+trophicass$average.TSI<-ifelse(!is.na(trophicass$averageTSI),
+                               ifelse(trophicass$averageTSI>=37,"mesotrophic",trophicass$average.TSI),
+                               trophicass$average.TSI)
+trophicass$average.TSI<-ifelse(!is.na(trophicass$averageTSI),
+                               ifelse(trophicass$averageTSI>50,"eutrophic",trophicass$average.TSI),
+                               trophicass$average.TSI)
+trophicass$averageTSI<-NULL
+}
+
+library(knitr)
+cat("Annual samples from this waterbody are averaged to give the following trophic state index for every year of sampling:\n\n")
+kable(trophicass)
+}
+if(length(trophic$Characteristic.Name)==0){
+ cat("There are no phosphorus, chlorophyll, or secchi depth data available to calculate the trophic status in this waterbody.\n\n") 
+}
+rm(trophicass)
+cat("\n\n  ")
+cat(' \n\n ')
+```
+
+
+
+##Profiles {.tabset}
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+  library(DT)
+
+  temp<- profiles1
+  temp<-temp %>% 
+    distinct()
+  
+  if(is.na(temp$Characteristic.Name[1])){
+    cat(" \n No profile data have yet been collected at this waterbody. \n\n\n")
+  }
+  
+ if(!is.na(temp$Characteristic.Name[1])){
+  #simplify for table
+   tempsimp<-unique(temp[c('Characteristic.Name','SAMPLE_DATE','Depth','Result.Value','Result.Unit')])
+   cat("   \n###Tabulated Data \n\n ")
+    #DT::datatable(tempsimp, options = list(scrollX = TRUE,columnDefs = list(list(className = 'dt-center', targets = 0:5))))
+    datatable(tempsimp, extensions = 'Buttons', options = list(dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
+    rm(tempsimp)
+    cat("  \n\n")
+
+
+if(length(temp$Result.Value)!=0){
+  temp$Result.Value<-as.numeric(temp$Result.Value)
+    library(ggplot2)
+    library(gridExtra)
+    params<-unique(temp$Characteristic.Name)
+    nparams<-length(params)
+    p<-list()
+    
+library(ggplot2)
+library(gridExtra)
+    for(j in 1:nparams){
+      display<-paste("  \n \n","###",params[j],"  \n",sep="")
+      cat(display)
+      rm(display)
+      
+     temp1<-temp[temp$Characteristic.Name==params[j],]
+      temp1<-temp1[!is.na(temp1$Characteristic.Name),]
+      if((length(temp1$Result.Value))!=0){
+        temp1<-temp1[order(temp1$SAMPLE_DATE,temp1$Depth),]
+        xaxistitle<-paste(unique(temp1$Characteristic.Name)," (",unique(temp1$Result.Unit),")",sep="")
+        temp1$SAMPLE_DATE<-format(temp1$SAMPLE_DATE,"%Y.%m.%d")
+        temp1$SAMPLE_DATE<-factor(temp1$SAMPLE_DATE,unique(temp1$SAMPLE_DATE))
+#        p[[j]]<-(ggplot(temp1[order(temp1$Depth,temp1$SAMPLE_DATE),],aes(Result.Value,Depth)) +
+#                   geom_point(aes(shape=factor(violation))) +
+#                   scale_shape_manual(name = "Violation", values = c(1, 8)) +
+#                   geom_path(aes(color=factor(SAMPLE_DATE))) +
+#                   scale_y_reverse(lim = c((max(temp$Depth)+0.25),0)) +
+#                   theme(legend.title=element_blank(),
+#                         legend.position="none") +
+#                   labs(y="Depth (m)",x=xaxistitle,colour = ""))
+        
+      
+
+      #if(j==1){
+            print(ggplot(temp1[order(temp1$Depth,temp1$SAMPLE_DATE),],aes(Result.Value,Depth)) +
+                   geom_point(aes(shape=factor(violation))) +
+                   scale_shape_manual(name = "Violation", values = c(1, 8)) +
+                   geom_path(aes(color=factor(SAMPLE_DATE))) +
+                   scale_y_reverse(lim = c((max(temp$Depth)+0.25),0)) +
+                   theme(legend.title=element_blank()) +
+                   labs(y="Depth (m)",x=xaxistitle,colour = ""))
+      #}
+      }
+      rm(list=c('xaxistitle'))
+      cat("\n\n")
+    }
+    
+#     n <- length(p)
+#    nCol <- floor(sqrt(n))  
+#    do.call("grid.arrange",c(p,ncol=nCol))
+    
+  cat("  \n")
+  cat("  \n")
+ #rm(list=c('temp','j','params','nparams','p','display'))
+}
+}
+cat(' \n\n ')
+```
+
+##Secchi/Water Column Samples {.tabset}
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+library(DT)
+library(ggplot2)
+library(gridExtra)
+library(lubridate)
+
+temp<- hypoepi1
+temp$Result.Value<-as.numeric(temp$Result.Value)
+
+  #simplify for table
+   tempsimp<-unique(temp[c('Characteristic.Name','Result.Sample.Fraction','INFO_TYPE','SAMPLE_DATE','Result.Value','Result.Unit')])
+   cat("  \n###Tabulated Data ")
+    cat(" \n\n ")
+    datatable(tempsimp, extensions = 'Buttons', options = list(dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
+#    DT::datatable(tempsimp, options = list(scrollX = TRUE,columnDefs = list(list(className = 'dt-center', targets = 0:5))))
+    cat(" \n\n ")
+    rm(tempsimp)
+    cat("  \n\n  ")
+
+cat(' \n\n ')
+```
+
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+
+    temp$params<-paste(temp$Characteristic.Name," (",temp$Result.Sample.Fraction,")",sep="")
+    temp$day<-yday(temp$SAMPLE_DATE)
+    params<-unique(temp$params)
+    nparams<-length(params)
+    #p<-list()
+
+    for(j in 1:nparams){
+      display<-paste("  \n","###",params[j],"  \n",sep="")
+      cat(display)
+      rm(display)
+      
+      temp1<-temp[temp$params==params[j],]
+      temp1<-temp1[!is.na(temp1$Characteristic.Name),]
+      library(dplyr)
+      temp1 <- temp1 %>% 
+          filter(INFO_TYPE %in% c("epilimnion","hypolimnion","secchi"))
+      #temp1$SAMPLE_DATE<-format(temp1$SAMPLE_DATE,"%Y.%m.%d")
+      
+      if((length(temp1$Result.Value))!=0){
+        yaxistitle<-unique(temp1$Result.Unit)
+        testinfo<-length(unique(temp1$INFO_TYPE))
+         
+        if(testinfo==2){
+          print(p<- ggplot(temp1, aes(x = day, y = Result.Value, 
+                      color = year, 
+                      shape = violation, 
+                      fill = factor(INFO_TYPE))) +
+                  scale_shape_manual(name = "Violations", values = c(21, 24)) +
+                  scale_fill_manual(name="Layer Sampled",values=c("white","black"))+
+                  theme_minimal()+
+                  geom_point(size=2,stroke=2)+
+                  guides(fill=guide_legend(override.aes = (list(shape=c(1,16)))))+
+                  labs(y=yaxistitle,x="Day of Year",colour = ""))
+          }
+        if(testinfo!=2){
+          print(p<- ggplot(temp1, aes(x = day, y = Result.Value, 
+                      color = year, 
+                      shape = violation, 
+                      fill = factor(INFO_TYPE))) +
+                  scale_shape_manual(name = "Violations", values = c(21, 24)) +
+                  scale_fill_manual(name="Layer Sampled",values=c("white","black"))+
+                  theme_minimal()+
+                  geom_point(size=2,stroke=2)+
+                  guides(fill=guide_legend(override.aes = (list(shape=c(1)))))+
+                  labs(y=yaxistitle,x="Day of Year",colour = ""))
+        }        
+      }
+      rm(list=c('temp1','testinfo','yaxistitle'))
+      cat("\n\n")
+    }
+    
+    cat("  \n")
+    cat("  \n")
+  rm(list=c('temp','j','params','nparams','p','display'))
+
+
+
+cat(' \n\n ')
+```
+
+##HABs Samples {.tabset}
+
+###HABs Status Table
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+if(!is.na(habs1$SAMPLE_DATE[1])){
+habs1<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','STATUS','REMARK','Characteristic.Name','Result.Value','Result.Unit')])
+habstatus<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','STATUS')])
+habstatus<-habstatus %>% 
+  arrange(desc(SAMPLE_DATE))
+datatable(habstatus, extensions = 'Buttons', options = list(dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
+#rm(habstatus)
+}
+if(is.na(habs1$SAMPLE_DATE[1])){
+  cat('No habs data collected')
+}
+cat(' \n\n ')
+cat(' \n\n ')
+```
+
+
+###Tabulated Data
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+if(!is.na(habs1$SAMPLE_DATE[1])){
+habs1<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','REMARK','Characteristic.Name','Result.Value','Result.Unit')])
+habs1<-habs1 %>% 
+  arrange(desc(SAMPLE_DATE))
+datatable(habs1, extensions = 'Buttons', options = list(dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
+}
+if(is.na(habs1$SAMPLE_DATE[1])){
+  cat('No habs data collected')
+}
+
+cat(' \n\n ')
+```

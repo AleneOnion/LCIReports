@@ -1,0 +1,97 @@
+---
+title: "Ponded Waters Missing in the Waterbody Inventory"
+author: "Alene Onion"
+date: "`r format(Sys.Date(),format='%B %d, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+#Introduction
+It has come to our attention that there are a large number of ponded waters over 6.5 acres that are not in the waterbody inventory.
+The purpose of this document is to explore these data to better understand how we may rethink our site selection strategy for 2019.
+
+#Missing ponded waters
+We've always known that there were a large number of ponded waters not in the waterbody inventory and we assumed that these were the smaller waterbodies such as farm ponds. What was surprising to us, is how many of the missing waterbodies are above the 6.5 acre threshold. Many are even larger than 100 acres.
+
+Matt Kraft first observed this when working with the NHD layer. Below is a cumulative count, by acreage, of ponded waters that are more than 6.5 acres which are in the NHD ponded waters layer but are not in the waterbody inventory layer. 
+
+What is striking about this plot is that more ponded waters over 6.5 acres are not in the waterbody inventory than are in the waterbody inventory. Another way to state this is that more than half of the ponded waters in NYS state over 6.5 acres are not in the waterbody inventory.
+
+PLEASE NOTE: this analysis is not exhaustive and didn't include an analysis of false positives in the NHD waterbody layer. That being said, we did check the top 70 largest ponded waters and spot checked some of the rest.
+
+ANOTHER NOTE: there are many lakes in the waterbody inventory that are over 750 acres but we converted these to 750 so they wouldn't spread the x axis so far to the right that we couldn't see the comparison with lakes not in the waterbody inventory. This is the reason there is a small uptick at the end of the WI line - these are the lakes over 750. It's important to understand that they are included in the count even if their acreage isn't accurately represented.
+
+```{r message=FALSE, warning=FALSE, results='asis'}
+noWI<-read.csv("C:/Rscripts/LCIReports/sections/data/missing.waterbody.inventory.lakes.csv")
+library(ggplot2)
+library(dplyr)
+#sort by the number of lakes in each basin
+noWI$ct<-1
+noWI<-noWI %>%
+  group_by(M_BAS_NAME) %>%
+  mutate(ct = sum(ct)) %>%
+  ungroup()
+noWI<-unique(noWI[c('GNIS_Name','ReachCode','Acres','M_BAS_NAME','ct')])
+noWI<-noWI[!is.na(noWI$Acres),]
+
+#pull order of counts for factor levels
+noWIfactors<-unique(noWI[c('M_BAS_NAME','ct')])
+noWIfactors<-noWIfactors[order(noWIfactors$ct, decreasing =TRUE),]
+
+noWI <- noWI %>% 
+  mutate(M_BAS_NAME = factor(M_BAS_NAME, levels = noWIfactors$M_BAS_NAME))
+noWI$ct<-NULL
+noWI$status<-"not in WI"
+names(noWI)[names(noWI)=="Acres"]<-"ACRES"
+
+
+#pull lakes that are in the waterbody inventory
+WI<-unique(blake[c('LakeID','PWLID','ACRES','M_BAS_NAME')])
+WI$PWLID[WI$PWLID==""]<-NA
+WI<-WI[!is.na(WI$PWLID),]
+#converting na acres to 10 just so included in cumulative count (only affects 5 lakes)
+WI$ACRES[is.na(WI$ACRES)]<-10
+#set factor levels
+WI <- WI %>% 
+  mutate(M_BAS_NAME = factor(M_BAS_NAME, levels = noWIfactors$M_BAS_NAME))
+WI$status<-"WI"
+#convert lakes >1000 acres to 1000 so don't mess up plot
+WI$ACRES<-ifelse(WI$ACRES>750,750,WI$ACRES)
+
+#merge
+all<-merge(noWI,WI,by=c('M_BAS_NAME','ACRES','status'),all=TRUE)
+allstatus<- all %>% 
+  group_by(status) %>% 
+  arrange(ACRES) %>% 
+  mutate(rn = row_number()) %>% 
+  mutate(max = max(rn))
+
+#plot cumulative count
+print(p<- ggplot(data=allstatus)+
+            geom_step(aes(x=ACRES,y=rn, color=status))+
+            ylab("Cumulative count of ponded waters"))
+#),aes(x=ACRES))+
+#      stat_bin(aes(y=cumsum(..count..)),geom = "step", binwidth=20)+
+#      ylab("Cumulative count of lakes not in the waterbody inventory"))
+
+```
+
+#By Basin
+
+When we broke it down by basin (below), we can see that the major basins are different in how many lakes they contain which are not on the waterbody inventory. The lower hudson and St. Lawrence river basins contain the most and the Ramapo and Housatonic contain the least.
+
+They also differ in the largest unlisted lakes. The St. Lawrence has the largest lake unlisted in the waterbody inventory at over 700 acres with the Lower Hudson close behind it at over 500 acres.
+```{r message=FALSE, warning=FALSE, results='asis'}
+noWIbasins<- noWI %>% 
+  group_by(M_BAS_NAME) %>% 
+  arrange(ACRES) %>% 
+  mutate(rn = row_number())
+print(
+ p<- ggplot(noWIbasins) + 
+      geom_step(aes(x=ACRES, y=rn, color=M_BAS_NAME))+
+      ylab("Cumulative count of ponded waters not in the waterbody inventory"))
+rm(list=c('noWI','noWIbasins','p','noWIfactors','WI'))
+```

@@ -1,0 +1,109 @@
+---
+title: "Water Supply"
+author: "Alene Onion"
+date: "January 3, 2019"
+output:  
+  html_document:
+    toc: true
+    toc_depth: 6
+    toc_float: true
+---
+
+##Public Water Supply Use  
+assuming this waterbody is a public water supply    
+
+Components:  
+```{r, echo=FALSE,results='asis'}
+short<-c('UR','AT','MCL','ChlA','HABs','BGA','sHABs','Bind')
+definition<-c('number of days PWS use was restricted','Additional Treatment',
+              'any maximum contamination limit violations reported at the public water supply',
+              'What percent of the Chl A readings since 2011 (or 2018) exceeded the standard (class AA standard is >4, class A standard is >6)',
+              'How many days were HABs observed since 2011 (or 2018)',
+              'Surface readings of FP-BGChl over 25 since 2011 (or 2018)','Count of shoreline habs that have FP-BGChl reading over 25 since 2011',
+              'Assuming the lake is neither class B or C, The number of Fe, Mn, As hypolimnion samples that exceeded thresholds OR using inferred DO from aquatic life')
+components<-data.frame(short,definition)
+knitr::kable(components)
+rm(list=c('short','definition','components'))
+```
+
+Additional definitions:   
+
+* NOTE: inferred DO is calculated in aquatic life table  
+
+```{r, echo=FALSE,results='asis'}
+#Questions for Scott   
+
+#* UR:  
+#    + this info is also collected from the CCRs (see below)  
+#* AT: what does this mean exactly and where are data collected from?  
+#    + Class AA waterbodies should not require additional treatment according to the classification  
+#    + It should come from the healt dept. If not, then we go into the CCRs - consumer confidence municipality reports #(required by law to report treatment)  
+#    + For ex: Bolton land has used disinfection byproducts to treat for algae  
+#* MCL: how to get this info???  
+#    + also harvested from the CCL  
+#* sHABs: for 2018 calc it's also since 2011???  
+#    + That's an error
+#* sHABs: this code seems wrong. I would think they should both be the same spreadsheet (it is in the swimming sHABs): #COUNTIFS(RawShoreHAB!$AC$2:$AC$500,">25",RawSurfaceAll!$AP$2:$AP$500,">2011")
+#    + They should both be from the RawShoreHAB datasheet   
+#* Bind: Why do you only count Fe readings if there are more than one???     
+#    + Because we didn't want to be calling out a waterbody because of a single measurement  
+#    + As and Mn are based on the MCL  
+#    + Scott needs to check this  
+#* Bind: the inferred DO value for av year is used but the inferred DO assessment is used for 2018????  
+#    + we have to come back to that once we examine inferred DO  
+#    + For LCI we should be using depth profile dat to assess DO instead  
+#* Bind: Why don't you use Fe, Me, or As values for 2018????????  
+#    + we should also be considering Fe, Mn, As for 2018 data. CSLAP hasn't been collecting this data in recent years.  
+#* ChlA: Shouldn't ChlA have a -1 value for not being a PWS???   
+#    + doesn't matter because overall score given 2 if not PWS
+#* ALL: shouldn't y2018 use > and not = for comparing max(PWS)??? 
+#     + It should be >
+#* ALL: how did you decide the rank within a category? (ex: within 3 valuse = impaired)  
+#     + based in part on the CALM wher they needed to decide the "primary pollutant"  
+#     + This was Scott's view of what is priority - health hazards <- persistant pollutant, occurs continuously    
+```
+
+Components for av year:  
+```{r, echo=FALSE,results='asis'}
+score<-c('-1',0,1.3,2.2,2.3,2.4,2.5,2.6,3.3,3.6,3.7,3.8,3.9,4.9)
+UR<-c('not PWS',0,'','','','','','','','','','','0-30','>30')
+AT<-c('not PWS','','','','','','','','','','','is PWS','','')
+MCL<-c('not PWS','no','','','','','','','','','yes','','','')
+ChlA<-c('','<10%','','','','','','10%-50%','','>50%','','','','')
+HABs<-c('not PWS',0,'','','','','>0','','','','','','','')
+BGA<-c('not PWS',0,'','','','>0','','','','','','','','')
+sHABs<-c('not PWS',0,'','>0','','','','','','','','','','')
+Bind <-c('','','av As>0.3 OR InferredDO>0','','av Mn>0.1 OR count(Fe>1)>1','','','','count(Fe>10)>1','','','','','')
+PWS<-data.frame(score,UR,AT,MCL,ChlA,HABs,BGA,sHABs,Bind)
+knitr::kable(PWS)
+rm(list=c('PWS','score','UR','AT','MCL','ChlA','HABs','BGA','sHABs','Bind'))
+```	
+
+Components for 2018
+```{r, echo=FALSE,results='asis'}
+score<-c('-1',0,1.5,2.6,2.7,2.8,2.9,3.9)
+ChlA<-c('','<10%','','','','','10%-50%','>50%')
+HABs<-c('not PWS',0,'','','','>0','','')
+BGA<-c('not PWS',0,'','','>0','','','')
+sHABs<-c('not PWS',0,'','>0','','','','')
+Bind <-c('','','InferredDO>0','','','','','')
+PWS<-data.frame(score,ChlA,HABs,BGA,sHABs,Bind)
+knitr::kable(PWS)
+rm(list=c('PWS','score','ChlA','HABs','BGA','sHABs','Bind'))
+
+```	
+
+
+Total Score for Potable Water Supplies    
+```{r, echo=FALSE,results='asis'}
+score<-c(2,3,4,5,6)
+translation<-c('Not Known','Supported/Good','Threatened/Fair','Stressed/Poor','Impaired')
+avYear<-c('notPWS','0>max(PWS)<1','max(PWS)>1','max(PWS)>2','max(PWS)>3')
+y2018<-c('notPWS','0>max(PWS18)<1','max(PWS18)=1','max(PWS18)=2','max(PWS18)=3')
+PWSscore<-data.frame(score,translation,avYear,y2018)
+knitr::kable(PWSscore)
+rm(list=c('score','avYear','PWSscore','translation','y2018'))
+```	
+
+Primary Issue  
+The primary issue is simply the highest scoring component in the list  

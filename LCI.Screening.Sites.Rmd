@@ -1,0 +1,87 @@
+---
+title: "Ranked Sites for Screening"
+author: "NYS Department of Environmental Conservation"
+date: "`r format(Sys.Date(),format='%B %d, %Y')`"
+output:  
+  html_document:
+    toc: true
+    toc_depth: 6
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+#Screening Sites
+
+##Budget
+
+LCI has roughly $50,000 for analytic costs. We presume the cost of a QA samples is $270.25 which is the average cost of a Class A epi/hypo ($374), Class A unstratified ($234), not class A epi/hypo ($290), not class A unstratified ($183). This is the cost of either an equipment blank or duplicate sample.
+
+
+##Reference Sites (6 sites)
+
+10% of our screening sites need to be reference sites according to our QAPP. As per above, our budget allows for roughly 75 screening sites meaning we need to sample roughly 7 reference sites.  
+
+We selected sites that have >95% forest_wetland coverage in the watershed. In more developed regions, we select sites that are >75% forest_wetland coverage with less than 2% impervious surface. 
+
+St. Lawrence and Delaware River watersheds have sufficient sites wiht >95% coverage. Genesee does not and we need to select sites from a list of >75% forest_wetland coverage and less than 2% impervious surface.  
+
+We then ranked the lakes by acreage.  
+
+We selected (marked with "x") the top ranked lakes in each basin/ecoregion combination. If there was a lake with historic data which was only a few acres less than a selected lake, we went with the historically sampled lake instead.  
+
+One of these sites will be sampled by CSLAP in 2018 so we only need to sample the other 6 during LCI screening.
+
+```{r, echo=FALSE, results='asis'}
+library(knitr)
+print(kable(reference))
+```
+
+##Long Term Trend (1 site)
+
+20% of our screening sites need to be long term trend locations according to our QAPP. Our budget allows for roughly 75 screening sites meaning we need to sample roughly 15 reference sites.  
+
+We selected sites that have > 5 yrs worth of historic data since 2001.  
+
+We then ranked the lakes by acreage.  
+
+We selected (marked with "x") the top ranked lakes in each basin/ecoregion combination.  
+
+As you can see, the majority of these sites will be sampled by CSLAP in 2019 so we only need to sample 1402WOL0037 in 2019 LCI Screening.
+
+```{r, echo=FALSE, results='asis'}
+library(knitr)
+print(kable(longterm))
+```
+
+##Dept Interest - TMDL (2 sites)
+
+The TMDL team requested we sample two lakes in the Black Lake watershed.
+
+```{r, echo=FALSE, results='asis'}
+library(knitr)
+print(kable(tmdl))
+```
+
+##Dept Interest/Unassessed - anthro load (64 sites)
+
+The following lakes are those that haven't been sampled in 10 years and are not listed as impaired on the Waterbody Inventory.  
+They are then ranked by PWS, HABs observed over 2 years (bloom), and finally anthropogenic phosphorus load.
+
+```{r, echo=FALSE, results='asis'}
+library(knitr)
+print(kable(deptinterest))
+```
+
+##Final List / Cost
+```{r, echo=FALSE, results='asis'}
+totaled<-sum(totals$cost,na.rm=TRUE)
+totaleds<-paste("the total cost of screening samples will be ",totaled,sep="")
+print(totaleds)
+rm(totaleds)
+library(knitr)
+print(kable(totals))
+```
+##QA Costs/Total Cost

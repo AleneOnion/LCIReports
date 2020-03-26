@@ -1,0 +1,183 @@
+---
+title: "graphs"
+author: "Alene Onion"
+date: "January 3, 2019"
+output:  
+  html_document:
+    toc: true
+    toc_depth: 6
+    toc_float: true
+---
+
+# Secchi Depth  
+Secchi depth data were collected:  
+
+```{r, echo=FALSE}
+secchi<-temp[temp$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH",]
+if((length(secchi$LAKE_ID))!=0){
+secchi<-unique(secchi[c('SAMPLE_DATE','Result.Value')])
+secchi<-secchi[!is.na(secchi$Result.Value),]
+secchi$SAMPLE_DATE<-as.Date(secchi$SAMPLE_DATE,format="%Y-%m-%d")
+secchi$year<-format(secchi$SAMPLE_DATE,"%Y")
+secchi$year<-factor(secchi$year,unique(secchi$year))
+secchi$day<-format(secchi$SAMPLE_DATE,"%j")
+#print the unique years data were collected
+unique(secchi$year)
+
+
+library(ggplot2)
+library(RColorBrewer)
+  print(ggplot(data=secchi,aes(day,Result.Value)) +
+  geom_rect(ymin=-2,ymax=0,xmin=-Inf,xmax=Inf,fill='red',alpha=0.02) +
+  geom_rect(ymin=-5,ymax=-2,xmin=-Inf,xmax=Inf,fill='yellow',alpha=0.02) +
+  geom_rect(ymin=-Inf,ymax=-5,xmin=-Inf,xmax=Inf,fill='green',alpha=0.02) +
+  geom_bar(aes(fill=factor(year)),stat="identity",width=0.05,position="dodge") +
+  scale_fill_brewer(palette="Greys") +
+  geom_point(colour="black",shape=10,size=6) +
+  scale_y_reverse(lim = c((max(secchi$Result.Value)+0.25),0)) +
+  theme(legend.title=element_blank()) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+    panel.background = element_blank(), axis.line = element_line(colour = "black")) +
+  labs(x="Day of Year", y="Secchi Depth (m)")) 
+}
+rm(secchi)
+
+```
+
+#Long Term Trend Data
+
+NOTE***** use this website to create a shared legend instead: http://www.sthda.com/english/articles/32-r-graphics-essentials/126-combine-multiple-ggplots-in-one-graph/
+
+Key to the symbology  
+```{r fig.width=3, fig.height=1,echo=FALSE}
+library(png)
+library(grid)
+img <- readPNG("data/symbology.png")
+ grid.raster(img)
+ #![](symbology.jpg)
+rm(img)
+```
+
+```{r, echo=FALSE, results='asis'}
+library(ggplot2)
+library(gridExtra)
+library(scales)
+#pull long term trend parameters
+trend<-trend[trend$Characteristic.Name=='DISSOLVED OXYGEN (DO)'|
+             trend$Characteristic.Name=='DISSOLVED OXYGEN SATURATION'|
+             trend$Characteristic.Name=='OXIDATION REDUCTION POTENTIAL (ORP)'|
+             trend$Characteristic.Name=='PH'|
+             trend$Characteristic.Name=='SPECIFIC CONDUCTANCE'|
+             trend$Characteristic.Name=='TEMPERATURE, WATER'|
+             trend$Characteristic.Name=='CHLOROPHYLL A (PROBE)'|
+             trend$Characteristic.Name=='PHYCOCYANIN'|
+             trend$Characteristic.Name=='ALKALINITY, TOTAL (AS CACO3)'|
+             trend$Characteristic.Name=='AMMONIA'|
+             trend$Characteristic.Name=='ARSENIC'|
+             trend$Characteristic.Name=='CALCIUM'|
+             trend$Characteristic.Name=='CHLOROPHYLL A'|
+             trend$Characteristic.Name=='DISSOLVED ORGANIC CARBON'|
+             trend$Characteristic.Name=='IRON'|
+             trend$Characteristic.Name=='MAGNESIUM'|
+             trend$Characteristic.Name=='MANGANESE'|
+             trend$Characteristic.Name=='NITRITE'|
+             trend$Characteristic.Name=='NITROGEN, KJELDAHL, TOTAL'|
+             trend$Characteristic.Name=='NITROGEN, NITRATE-NITRITE'|
+             trend$Characteristic.Name=='NITROGEN, NITRATE (AS N)'|
+             trend$Characteristic.Name=='POTASSIUM'|
+             trend$Characteristic.Name=='PHOSPHORUS'|
+             trend$Characteristic.Name=='SODIUM'|
+             trend$Characteristic.Name=='SULFATE (AS SO4)'|
+             trend$Characteristic.Name=='TOTAL ORGANIC CARBON'|
+             trend$Characteristic.Name=='TRUE COLOR'|
+             trend$Characteristic.Name=='UV 254',]
+trend<-unique(trend[c('Characteristic.Name','Result.Value','Result.Unit','INFO_TYPE','SAMPLE_NAME','DATA_PROVIDER','SAMPLE_DATE','START_DEPTH','END_DEPTH')])
+trend<-trend[!is.na(trend$Result.Value),]
+trend<-trend[!is.na(trend$Characteristic.Name),]
+trend$SAMPLE_DATE<-as.Date(trend$SAMPLE_DATE,format="%Y-%m-%d")
+
+if((length(trend$Result.Value))!=0){
+params<-unique(trend$Characteristic.Name)
+nparams<-length(params)
+p<-list()
+j<-1
+
+for(i in 1:nparams){
+  trend1<-trend[trend$Characteristic.Name==params[i],]
+  trend1<-trend1[!is.na(trend1$Characteristic.Name),]
+  trend1<-trend1[!is.na(trend1$Result.Value),]
+  thresh<-thresholds[thresholds$Characteristic.Name==params[i],]
+  if((length(trend1$Result.Value))!=0){
+    trend1$year<-format(trend1$SAMPLE_DATE,"%Y")
+    trend1$year<-factor(trend1$year,unique(trend1$year))
+       if(length(unique(trend1$year))>1){
+      p[[j]]<-(ggplot(trend1,aes(SAMPLE_DATE,Result.Value)) +
+        geom_rect(ymin=0,ymax=thresh$ystart[1],xmin=-Inf,xmax=Inf,fill='red',alpha=0.02) +
+        geom_rect(ymin=thresh$ystart[1],ymax=thresh$yend[1],xmin=-Inf,xmax=Inf,fill='yellow',alpha=0.02) +
+        geom_rect(ymin=thresh$yend[1],ymax=Inf,xmin=-Inf,xmax=Inf,fill='green',alpha=0.02) +
+        geom_point(aes(color=factor(INFO_TYPE))) +
+        theme(axis.title.x = element_blank()) +
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.line = element_line(colour = "black"),
+              legend.position="none") +
+        scale_x_date(labels = date_format("%Y")) +
+        labs(title=params[i], y=trend1$Result.Unit[1],colour = ""))
+    }
+    if(length(unique(trend1$year))<=1){
+      p[[j]]<-(ggplot(trend1,aes(SAMPLE_DATE,Result.Value)) +
+        geom_rect(ymin=0,ymax=thresh$ystart[1],xmin=-Inf,xmax=Inf,fill='red',alpha=0.02) +
+        geom_rect(ymin=thresh$ystart[1],ymax=thresh$yend[1],xmin=-Inf,xmax=Inf,fill='yellow',alpha=0.02) +
+        geom_rect(ymin=thresh$yend[1],ymax=Inf,xmin=-Inf,xmax=Inf,fill='green',alpha=0.02) +
+        geom_point(aes(color=factor(INFO_TYPE))) +
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+              panel.background = element_blank(), axis.line = element_line(colour = "black"),
+              legend.position="none") +
+        theme(axis.title.x = element_blank()) +
+        scale_x_date(labels = date_format("%m-%Y")) +
+        labs(title=params[i], y=trend1$Result.Unit[1],colour = ""))
+    }
+  j<-j+1
+  }
+  if(i==4|i==8|i==12|i==16|i==nparams){
+    do.call(grid.arrange,c(p,ncol=2))
+    p<-list()
+    j<-1
+  }
+  rm(list=c('trend1','thresh'))
+  }
+rm(list=c('i','params','nparams','p','j'))
+}
+rm(list=c('trend'))
+```
+
+# Depth Profiles
+```{r, echo=FALSE, results='asis'}
+profile<-temp[temp$INFO_TYPE=="DP",]
+profile<-unique(profile[c('LAKE_ID','LOCATION_ID','Characteristic.Name','Depth','Result.Value','SAMPLE_DATE')])
+profile$Characteristic.Name[profile$Characteristic.Name==""] <- NA
+profile<-profile[!is.na(profile$Characteristic.Name),]
+if((length(profile$Result.Value))!=0){
+library(ggplot2)
+  library(gridExtra)
+params<-unique(profile$Characteristic.Name)
+nparams<-length(params)
+p<-list()
+for(i in 1:nparams){
+  profile1<-profile[profile$Characteristic.Name==params[i],]
+  profile1<-profile1[!is.na(profile1$Characteristic.Name),]
+  profile1<-profile1[order(profile1$SAMPLE_DATE,profile1$Depth),]
+  profile1$SAMPLE_DATE<-format(profile1$SAMPLE_DATE,"%Y.%m.%d")
+  profile1$SAMPLE_DATE<-factor(profile1$SAMPLE_DATE,unique(profile1$SAMPLE_DATE))
+  p[[i]]<-(ggplot(profile1[order(profile1$Depth,profile1$SAMPLE_DATE),],aes(Result.Value,Depth)) +
+    geom_point() +
+    geom_path(aes(color=factor(SAMPLE_DATE))) +
+    scale_y_reverse(lim = c((max(profile$Depth)+0.25),0)) +
+    theme(axis.title.x = element_blank()) +
+    labs(title=params[i], y="Depth (m)",colour = "")) 
+  rm(list=c('profile1'))
+}
+
+do.call(grid.arrange,c(p,ncol=3))
+}
+rm(list=c('profile','i','params','nparams','p'))
+```

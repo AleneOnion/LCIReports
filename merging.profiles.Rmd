@@ -1,0 +1,62 @@
+---
+title: "Profile Data from 2019"
+author: "Alene Onion"
+date: "Feb 6, 2020"
+output:  
+  html_document:
+    toc: true
+    toc_depth: 6
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Profiles by Name
+
+Profile data is grouped by sample name and hyperlinks for each sample are in the menu to the left
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE,echo=FALSE}
+samples<-unique(profile$SAMPLE_NAME)
+nsamples<-length(samples)
+library(ggplot2)
+library(gridExtra)
+
+for(i in 1:nsamples){
+  temp<-profile[profile$SAMPLE_NAME==samples[i],]
+  temp$SAMPLE_DATE<-as.Date(temp$SAMPLE_DATE,"%m/%d/%Y")
+  #remove NA
+  temp<-temp[!is.na(temp$SAMPLE_NAME),]
+  #pull title
+      display<-paste("  \n \n","##",samples[i],"-",temp$sonde[i],"  \n",sep="")
+      cat(display)
+      rm(display)
+    params<-unique(temp$Characteristic.Name)
+    nparams<-length(params)
+    p<-list()
+    for(j in 1:nparams){
+#      display<-paste("  \n \n","###",params[j],"  \n",sep="")
+ #     cat(display)
+  #    rm(display)
+      
+      temp1<-temp[temp$Characteristic.Name==params[j],]
+      temp1<-temp1[!is.na(temp1$Characteristic.Name),]
+      if((length(temp1$Result.Value))!=0){
+        temp1<-temp1[order(temp1$SAMPLE_DATE,temp1$Depth),]
+        temp1$SAMPLE_DATE<-format(temp1$SAMPLE_DATE,"%m/%d/%Y")
+        temp1$SAMPLE_DATE<-factor(temp1$SAMPLE_DATE,unique(temp1$SAMPLE_DATE))
+        p[[j]]<-(ggplot(temp1[order(temp1$Depth,temp1$SAMPLE_DATE),],aes(Result.Value,Depth)) +
+                   geom_point() +
+                    geom_path()+
+                   scale_y_reverse(lim = c((max(temp$Depth)+0.25),0)) +
+                   theme(axis.title.x = element_blank()) +
+                   labs(title=params[j],y="Depth (m)",colour = ""))
+      }
+      rm(list=c('temp1'))
+      cat("\n\n")
+    }
+    print(do.call(grid.arrange,c(p,nrow=3)))
+    rm(list=c('params','nparams','temp'))
+}
+
+```

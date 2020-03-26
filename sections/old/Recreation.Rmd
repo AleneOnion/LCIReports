@@ -1,0 +1,89 @@
+---
+title: "Recreation"
+author: "Alene Onion"
+date: "January 3, 2019"
+output:  
+  html_document:
+    toc: true
+    toc_depth: 6
+    toc_float: true
+---
+
+##Swimming  
+
+Components:  
+```{r, echo=FALSE,results='asis'}
+short<-c('DB','Clarity','Control','ChlA','sTOX','sHABs','TOX','BGA','CT','HABn','nutrients')
+definition<-c('number of days beaches were closed',
+              'Percentage of clarity observations since 2011 (or 2018) less than 1.21',
+              'Control measures',
+              'Percentage of Chl A readings since 2011 (or 2018) exceeded the standard (>10 for recreation)',
+              'Count of shore samples >4 since 2011 (or 2018)',
+              'Count of shoreline habs that have FP-BGChl reading over 25 since 2011 (or 2018)',
+              'Count of surface samples >4 since 2011 (or 2018)',
+              'Surface readings of FP-BGChl over 25 since 2011 (or 2018)',
+              'Trend score for clarity or Chla (whichever is max) since sampling began',
+              'Any HAB notification',
+              'Percentage of phosphorus samples that exceeded 0.02 since 2011')
+components<-data.frame(short,definition)
+knitr::kable(components)
+rm(list=c('short','definition','components'))
+```
+
+Additional definitions/Notes:  
+
+* Trend score = RegScore x Pscore x SIGN
+    + RegScore = 0 (if n<5 | r2<0.3), 1 (if 0.03<=r2<0.5), 2 (if r2>=0.5)  
+    + PScore = 0 (if n<5 | p>0.05), 1 (if 0.01<p<=0.05), 2 (if p<=0.01)
+    + SIGN = 0 (if slope=0), 1 (if slope is +), -1 (if slope is -)
+  
+Components for av year: 
+
+```{r, echo=FALSE,results='asis'}
+score<-c(0,1.025,1.1,1.2,1.3,1.4,1.5,2.025,2.05,2.1,2.2,2.3,2.4,2.5,2.6,2.8,2.9,3.05,3.6,3.7,3.8,3.9)
+DB<-c('','','','','','','','','','','','','','','','','2.9','','','','','>10')
+Clarity<-c('','','','','','','','','','','','','','','','>10','','','','','>50','')
+Control<-c('no','','','','','','','','','','','','','','','','','','','!no','','')
+ChlA<-c('','','','','','','','','','','','','','','>10','','','','>50','','','')
+sTOX<-c('','','','','','','1','','','','','','','>1','','','','','','','','')
+sHABs<-c('','','','','','1','','','','','','','>1','','','','','','','','','')
+TOX<-c('','','','','1','','','','','','','>1','','','','','','','','','','')
+BGA<-c('','','','1','','','','','','','>1','','','','','','','','','','','')
+CT<-c('','','2','','','','','','','4','','','','','','','','','','','','')
+HABn<-c('no','','','','','','','','1','','','','','','','','','>1','','','','')
+nutrients<-c('','>10','','','','','','10<x<50','','','','','','','','','','','','','','')
+recr<-data.frame(score,DB,Clarity,Control,ChlA,sTOX,sHABs,TOX,BGA,CT,HABn,nutrients)
+knitr::kable(recr)
+rm(list=c('recr','score','DB','Clarity','Control','ChlA','sTOX','sHABs','TOX','BGA','CT','HABn','nutrients'))
+```	
+
+Components for 2018:  
+
+```{r, echo=FALSE,results='asis'}
+score<-c(0,1.2,1.3,1.4,1.5,1.6,1.7,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.4,3.8,3.9)
+Clarity<-c('','','','','','','','','','','','','','','','>10','','','>50')
+ChlA<-c('','','','','','','','','','','','','','','>10','','','>50','')
+sTOX<-c('','','','','','','1','','','','','','','>1','','','','','')
+sHABs<-c('','','','','','1','','','','','','','>1','','','','','','')
+TOX<-c('','','','','1','','','','','','','>1','','','','','','','')
+BGA<-c('','','1','','','','','','','>1','','','','','','','','','')
+HABn<-c('','','','','','','','','','','1','','','','','','>1','','')
+nutrients<-c('','>10','','','','','','','>50','','','','','','','','','','')
+recr<-data.frame(score,Clarity,ChlA,sTOX,sHABs,TOX,BGA,HABn,nutrients)
+knitr::kable(recr)
+rm(list=c('recr','score','Clarity','ChlA','sTOX','sHABs','TOX','BGA','HABn','nutrients'))
+```	
+
+Total Score for Swimming  
+```{r, echo=FALSE,results='asis'}
+score<-c(2,3,4,5,6)
+translation<-c('Not Known','Supported/Good','Threatened/Fair','Stressed/Poor','Impaired')
+avYear<-c('','0>max(RECR)<1','max(RECR)>1','max(RECR)>2','max(RECR)>3')
+y2018<-c('','0>max(RECR18)<1','max(RECR18)=1','max(RECR18)=2','max(RECR18)=3')
+SwimScore<-data.frame(score,translation,avYear,y2018)
+knitr::kable(SwimScore)
+rm(list=c('score','avYear','SwimScore','translation','y2018'))
+```	
+
+Primary Issue  
+The primary issue is simply the highest scoring component in the list  

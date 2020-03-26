@@ -1,18 +1,34 @@
-Designated_Use,Characteristic.Name,Result.Sample.Fraction,direction,threshold,units,simpleWC,simpleT,Characteristic.Name2,Result.Sample.Fraction2,direction2,threshold2,2,notes
-drinking_water,IRON,,>,300,ug/L,,,,,,,,
-drinking_water,MANGANESE,,>,300,ug/L,,,,,,,,
-drinking_water,ARSENIC,,>,50,ug/L,,,,,,,,
-drinking_water,"NITROGEN, NITRATE (AS N)",,>,10,mg/L,,,,,,,,
-drinking_water,CHLORIDE,,>,250,mg/L,,,,,,,,
-drinking_water,CHLOROPHYLL A,,>,4,ug/L,A,,,,,,,
-drinking_water,CHLOROPHYLL A,,>,6,ug/L,AA,,,,,,,
-drinking_water,UVDOC,,>,4,,,,,,,,,"UV254/DOC,  also known as SUVA"
-recreation,"DEPTH, SECCHI DISK DEPTH",,<,1.2,m,,,TRUE COLOR,,<,50,,
-recreation,PHOSPHORUS,T,>,20,ug/L,,,,,,,,
-recreation,HYPO_DO,,<,4,mg/L,,,,,,,,impaired if all DO measurements below the thermocline are below this threshold 
-aquatic_life,PH,,<,6,,,,,,,,,
-aquatic_life,PH,,>,9,,,,,,,,,
-aquatic_life,EPI_DO,,<,5,mg/L,,,,,,,,impaired if any DO measurements above the thermocline are below this threshold
-aquatic_life,HYPO_DO,,<,1,mg/L,,T,,,,,,impaired if all DO measurements below the thermocline are below this threshold 
-aquatic_life,HYPO_DO,,<,1,mg/L,,TS,,,,,,impaired if all DO measurements below the thermocline are below this threshold 
-aquatic_life,AMMONIA,,,threshold,,,,,,,,,see ph/temp specific table of thresholds
+Designated_Use,classification,Characteristic.Name,Result.Sample.Fraction,direction,threshold,units,simpleWC,trout,Characteristic.Name2,Result.Sample.Fraction2,direction2,threshold2,2,notes
+drinking_water,A,IRON,,>,300,ug/L,,,,,,,,
+drinking_water,A,MANGANESE,,>,300,ug/L,,,,,,,,
+drinking_water,A,ARSENIC,,>,50,ug/L,,,,,,,,
+drinking_water,A,ARSENIC_MANGANESE,,>,500,ug/L,,,,,,,,
+drinking_water,A,"NITROGEN, NITRATE (AS N)",,>,10,mg/L,,,,,,,,
+drinking_water,A,CHLORIDE,,>,250,mg/L,,,,,,,,
+drinking_water,A,CHLOROPHYLL A,,>,4,ug/L,A,,,,,,,
+drinking_water,A,CHLOROPHYLL A,,>,6,ug/L,AA,,,,,,,
+drinking_water,A,UVDOC,,>,4,,,,,,,,,"UV254/DOC,  also known as SUVA"
+drinking_water,A,SULFATE (AS SO4),,>,250,mg/L,,,,,,,,
+recreation,AB,"DEPTH, SECCHI DISK DEPTH",,<,1.2,m,,,TRUE COLOR,,<,50,,true color must be above 50
+recreation,AB,PHOSPHORUS,T,>,0.02,mg/L,,,,,,,,epilimnion only
+recreation,AB,HYPO_DO,,<,4,mg/L,,,,,,,,impaired if all DO measurements below the thermocline are below this threshold 
+recreation,AB,#weed_coverage,,>,,,,,,,,,,
+aquatic_life,ABC,PH,,<,6,,,,PH,,>,9,,below 6 or above 9 is a possible impact
+aquatic_life,ABC,EPI_DO,,<,5,mg/L,,,,,,,,impaired if any DO measurements above the thermocline are below this threshold
+aquatic_life,ABC,HYPO_DO,,<,1,mg/L,,T or TS,,,,,,impaired if all DO measurements below the thermocline are below this threshold 
+aquatic_life,ABC,AMMONIA,,,,mg/L,,,,,,,,see ph/temp specific table of thresholds
+nutrient criteria,ABC,"DEPTH, SECCHI DISK DEPTH",,<,1.2,m,,,,,,,,
+nutrient criteria,ABC,PHOSPHORUS,T,>,0.02,mg/L,,,,,,,,
+nutrient criteria,ABC,CHLOROPHYLL A,T,>,10,ug/L,,,,,,,,
+eutrophic,,CHLOROPHYLL A,T,>,8,,,,,,,,,
+eutrophic,,"DEPTH, SECCHI DISK DEPTH",NA,<,2,,,,,,,,,
+eutrophic,,PHOSPHORUS,T,>,0.02,mg/L,,,,,,,,epilimnion only
+mesotrophic,,CHLOROPHYLL A,T,>,2,,,,,,,,,
+mesotrophic,,"DEPTH, SECCHI DISK DEPTH",NA,<,5,,,,,,,,,
+mesotrophic,,PHOSPHORUS,T,>,0.01,mg/L,,,,,,,,
+oligotrophic,,CHLOROPHYLL A,T,<,2,,,,,,,,,
+oligotrophic,,"DEPTH, SECCHI DISK DEPTH",NA,>,5,,,,,,,,,
+oligotrophic,,PHOSPHORUS,T,<,0.01,mg/L,,,,,,,,epilimnion only
+zebra_mussels,,#CALCIUM,T,>,20,,,,,,,,,below 10 is low susceptability for zebra mussels. Above 20 is high susceptability. Tony suggest that 10 might be high - NYC reservoir at 6 found them.
+hardwater,,#SPECIFIC CONDUCTANCE,,>,250,,,,,,,,,
+softwater,,#SPECIFIC CONDUCTANCE,,<,125,,,,,,,,,

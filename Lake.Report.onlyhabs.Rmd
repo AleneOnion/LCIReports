@@ -1,0 +1,127 @@
+---
+title: "`r titles`"
+author: "NYS Department of Environmental Conservation"
+date: "`r format(Sys.Date(),format='%B %d, %Y')`"
+output:  
+  html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+# {.tabset}
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+template1 <- "Lake Name: %s\n
+Lake acreage: %s \n
+County: %s \n
+PWLID: %s\n
+Waterbody Classification: %s\n
+Coordinates: %s,%s \n
+Is this waterbody a public water supply: %s\n
+Are there DOH desingated beaches on this waterbody: %s\n
+\n 
+\n"
+laketemp<-unique(lake1[c('LAKE_ID','WATER','ACRES','County','PWLID','Waterbody_Classification','Y_Coordinate','X_Coordinate','PWS','Beaches')])
+laketemp<-laketemp %>% 
+  arrange(PWLID,Waterbody_Classification,X_Coordinate,Y_Coordinate,County,ACRES) %>% 
+  distinct(LAKE_ID,.keep_all=TRUE,.na.rm = TRUE)
+cat(sprintf(template1,laketemp$WATER[1],laketemp$ACRES[1],laketemp$County[1],laketemp$PWLID[1],laketemp$Waterbody_Classification[1],laketemp$Y_Coordinate[1],laketemp$X_Coordinate[1],laketemp$PWS[1],laketemp$Beaches[1]))
+rm(template1)
+
+```
+##Water Quality Standards {.tabset}
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+library(knitr)
+library(DT)
+
+template1 <- "###Applicable Water Quality Standards:\n
+%s \n
+PWLID: %s\n
+Waterbody Classification: %s\n
+The water quality standards applied to this waterbody are:\n
+\n " 
+
+template2 <- " \n The specific water quality standard violations in the %s data set are as follows: \n\n\n"
+template3 <- " \n There are no water quality standards violations in this data set for %s. \n\n\n\n"
+
+description<-unique(profiles1[c('LAKE_ID','WATER','PWLID','Waterbody_Classification')])
+cat(sprintf(template1, description$WATER[1],description$PWLID[1],description$Waterbody_Classification[1]))
+
+#create the WQS table
+description$simpleWC<-NA
+description$simpleWC<-ifelse(grepl("D",description$Waterbody_Classification),"D",description$simpleWC)
+description$simpleWC<-ifelse(grepl("C",description$Waterbody_Classification),"C",description$simpleWC)
+description$simpleWC<-ifelse(grepl("B",description$Waterbody_Classification),"B",description$simpleWC)
+description$simpleWC<-ifelse(grepl("A",description$Waterbody_Classification),"A",description$simpleWC)
+description$simpleT<-NA
+description$simpleT<-ifelse(grepl("T",description$Waterbody_Classification),"T",description$simpleT)
+description$simpleT<-ifelse(grepl("TS",description$Waterbody_Classification),"TS",description$simpleT)
+description$simpleT1<-description$simpleT
+description$simpleT<-NULL
+
+desthresh<-unique(description[c('simpleWC','simpleT1')])
+minithresh<-merge(desthresh,thresh,by=c('simpleWC'),all.x=TRUE)
+library(tidyr)
+minithresh$simpleT1<-minithresh$simpleT1 %>% 
+  replace_na(" ")
+minithresh$simpleT<-minithresh$simpleT %>% 
+  replace_na(" ")
+minithresh<-subset(minithresh,Characteristic.Name=="DISSOLVED OXYGEN (DO)"&simpleT==simpleT1|Characteristic.Name!="DISSOLVED OXYGEN (DO)")
+minithresh<-unique(minithresh[c('Characteristic.Name','limnion','simpleF','direction','threshold')])
+minithresh<-minithresh %>% 
+  rename(layer=limnion,
+         Fraction=simpleF)
+minithresh$layer<-minithresh$layer %>% 
+  replace_na(" ")
+minithresh$Fraction<-minithresh$Fraction %>% 
+  replace_na(" ")
+knitr::kable(minithresh)
+rm(list=c('minithresh','desthresh'))
+
+```
+
+###WQS Violations
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+  cat(sprintf(template3,description$WATER))
+```
+
+##Trophic States {.tabset}
+
+None of the trophic parameters (chlorophyll, secchi, or phosphorus) have yet been measured at this waterbody. Therefore we cannot calculate the trophic state.
+
+
+##Profiles {.tabset}
+
+No profile data have yet been collected at this waterbody.
+
+##HABs Samples {.tabset}
+
+###HABs Status Table
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+if(!is.na(habs1$SAMPLE_DATE[1])){
+habs1<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','STATUS','REMARK','Characteristic.Name','Result.Value','Result.Unit')])
+habstatus<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','STATUS')])
+habstatus<-habstatus %>% 
+  arrange(desc(SAMPLE_DATE))
+datatable(habstatus, extensions = 'Buttons', options = list(dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
+#rm(habstatus)
+}
+if(is.na(habs1$SAMPLE_DATE[1])){
+  cat('No habs data collected')
+}
+cat(' \n\n ')
+```
+
+
+###Tabulated Data
+```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
+if(!is.na(habs1$SAMPLE_DATE[1])){
+habs1<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','REMARK','Characteristic.Name','Result.Value','Result.Unit')])
+habs1<-habs1 %>% 
+  arrange(desc(SAMPLE_DATE))
+datatable(habs1, extensions = 'Buttons', options = list(dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
+}
+if(is.na(habs1$SAMPLE_DATE[1])){
+  cat('No habs data collected')
+}
+```
