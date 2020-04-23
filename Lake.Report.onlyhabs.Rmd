@@ -44,7 +44,7 @@ The water quality standards applied to this waterbody are:\n
 template2 <- " \n The specific water quality standard violations in the %s data set are as follows: \n\n\n"
 template3 <- " \n There are no water quality standards violations in this data set for %s. \n\n\n\n"
 
-description<-unique(profiles1[c('LAKE_ID','WATER','PWLID','Waterbody_Classification')])
+description<-unique(lake1[c('LAKE_ID','WATER','PWLID','Waterbody_Classification')])
 cat(sprintf(template1, description$WATER[1],description$PWLID[1],description$Waterbody_Classification[1]))
 
 #create the WQS table

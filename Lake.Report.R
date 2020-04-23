@@ -49,15 +49,15 @@ rm(list=c('habs','habs1','hypoepi1','junk','lake1','profiles1','ids','titles','h
           'params','samples','display1'))
 
 lake<-data
-lake$SAMPLE_DATE<-as.Date(lake$SAMPLE_DATE,format="%m/%d/%Y")
-lake<-lake[lake$SAMPLE_DATE>'2000-01-01',]
+lake$SAMPLE_DATE<-as.Date(lake$SAMPLE_DATE,format="%Y-%m-%d")
+#lake<-lake[lake$SAMPLE_DATE>'2000-01-01',]
 lake<-lake %>% 
   mutate(year=substring(SAMPLE_DATE,1,4))
 lake<-lake %>% 
   select(LAKE_ID,SAMPLE_ID,SAMPLE_NAME,LOCATION_ID,DATA_PROVIDER,SAMPLE_DATE,TIME,
          Characteristic.Name,Result.Value,Result.Unit,Result.Sample.Fraction,Depth,
          WATER,LocationName,Y_Coordinate,X_Coordinate,INFO_TYPE,Waterbody_Classification,PWLID,
-         year,ACRES,County,PWS,Beaches,REMARK,STATUS)
+         year,ACRES,County,PWS,Beaches,REMARK,STATUS,QUANTITATION_LIMIT,VALIDATOR_QUALIFIERS,INTERPRETED_QUALIFIERS)
 lake<-lake[!is.na(lake$SAMPLE_ID),]
 #####################################################################################################
 
@@ -83,46 +83,95 @@ profiles<-profiles %>%
 
 
 hypoepi <- lake %>% 
-  filter(Characteristic.Name %in% c("AMMONIA", 
-                                    "NITROGEN, NITRATE (AS N)",
-                                    "SODIUM","IRON","MANGANESE",
-                                    "MAGNESIUM",
-                                    "NITROGEN, NITRATE-NITRITE",
-                                    "NITROGEN, KJELDAHL, TOTAL",
-                                    "SILICA","CHLORIDE (AS CL)",
-                                    "ALKALINITY, TOTAL (AS CACO3)",
-                                    "TOTAL ORGANIC CARBON",
-                                    "CHLOROPHYLL A",
-                                    "PHOSPHORUS",
-                                    "SULFATE (AS SO4)",
-                                    "TRUE COLOR",
-                                    "CALCIUM",
-                                    "SULFATE",
-                                    "CHLORIDE",
-                                    "SULFATE",
-                                    "DISSOLVED ORGANIC CARBON",
-                                    "NITROGEN",
+  filter(Characteristic.Name %in% c("ALKALINITY, TOTAL (AS CACO3)",
+                                    "AMMONIA", 
                                     "ARSENIC",
+                                    "BORON",
+                                    "CALCIUM",
+                                    "CHLORIDE",
+                                    "CHLORIDE (AS CL)",
+                                    "CHLOROPHYLL A",
+                                    "COLOR, UNKNOWN",
+                                    "COPPER",
+                                    "DISSOLVED ORGANIC CARBON",
+                                    "ETHYLBENZENE",
+                                    "FLUORIDE",
+                                    "IRON",
+                                    "MAGNESIUM",
+                                    "MANGANESE",
                                     "NITRITE",
-                                    'TEMPERATURE, WATER',
+                                    "NITROGEN",
+                                    "NITROGEN, KJELDAHL, TOTAL",
+                                    "NITROGEN, NITRATE (AS N)",
+                                    "NITROGEN, NITRATE-NITRITE",
+                                    "NITROGEN, TOTAL",
+                                    "NITROGEN, TOTAL DISSOLVED",
+                                    "ORTHOPHOSPHATE",
                                     'PH',
-                                    'SPECIFIC CONDUCTANCE'))
+                                    "PHOSPHORUS",
+                                    "POTASSIUM",
+                                    "SILICA",
+                                    "SODIUM",
+                                    "SOLUBLE REACTIVE PHOSPHORUS (SRP)",
+                                    "SODIUM",
+                                    'SPECIFIC CONDUCTANCE',
+                                    "SULFATE (AS SO4)",
+                                    "SULFATE",
+                                    'TEMPERATURE, WATER',
+                                    "TOTAL ORGANIC CARBON",
+                                    "TOTAL DISSOLVED SOLIDS",
+                                    "TOTAL HARDNESS",
+                                    "TOTAL PHOSPHORUS, MIXED FORMS",
+                                    "TOTAL SUSPENDED SOLIDS",
+                                    "TRUE COLOR",
+                                    "TURBIDITY",
+                                    "UV 254"))
 hypoepi<-hypoepi %>% 
   filter(INFO_TYPE %in% c('OW','BS'))
 hypoepi<-hypoepi[!is.na(hypoepi$Characteristic.Name),]
 SD<-lake[lake$INFO_TYPE=="SD",]
 SD<-SD[!is.na(SD$SAMPLE_ID),]
 hypoepi<-merge(hypoepi,SD,all=TRUE)
+#change non-detects to minimum detection value
+hypoepi<-hypoepi %>% 
+  mutate(Result.Value=ifelse(grepl("U",VALIDATOR_QUALIFIERS),QUANTITATION_LIMIT,Result.Value))
+
 
 
 habs<-lake %>% 
-  filter(Characteristic.Name %in% c("MICROCYSTIN",
-                                    "DOMINANT ALGAL SPECIES",
+  filter(Characteristic.Name %in% c("MICROCYSTIN")) %>% 
+  select(SAMPLE_ID,DATA_PROVIDER) %>% 
+  distinct()
+habs<-merge(habs,lake,by=c('SAMPLE_ID','DATA_PROVIDER'),all.x=TRUE)
+habs<-habs %>% 
+  filter(Characteristic.Name %in% c("ANATOXIN-A",
+                                    "BMAA (BETA-METHYL-AMINO-(L)-ALANINE)",
                                     "CHLOROPHYLL A (PROBE RELATIVE FLUORESCENCE)",
-                                    "CHLOROPHYLL A (PROBE) CONCENTRATION, DINOPHYTA (DIATOMS)",
+                                    "CHLOROPHYLL A (PROBE) CONCENTRATION, CHLOROPHYTE (GREEN ALGAE)",
+                                    "CHLOROPHYLL A (PROBE) CONCENTRATION, CHRYSOPHYTA (BROWN ALGAE)",
+                                    "CHLOROPHYLL A (PROBE) CONCENTRATION, CRYPTOPHYTA (CRYPTOPHYTES)",
                                     "CHLOROPHYLL A (PROBE) CONCENTRATION, CYANOBACTERIA (BLUEGREEN)",
-                                    "ANATOXIN-A",
-                                    "CHLOROPHYLL A (PROBE) CONCENTRATION, CHLOROPHYTE (GREEN ALGAE)"))
+                                    "CHLOROPHYLL A (PROBE) CONCENTRATION, DINOPHYTA (DIATOMS)",
+                                    "CYLINDROSPERMOPSIN",
+                                    "DIHYDRO-ATX-A",
+                                    "DOMINANT ALGAL SPECIES",
+                                    "MICROCYSTIN",
+                                    "MICROCYSTIN AR",
+                                    "MICROCYSTIN DLR",
+                                    "MICROCYSTIN DRR",
+                                    "MICROCYSTIN FR",
+                                    "MICROCYSTIN HYR",
+                                    "MICROCYSTIN LA",
+                                    "MICROCYSTIN LR",
+                                    "MICROCYSTIN LW",
+                                    "MICROCYSTIN LY",
+                                    "MICROCYSTIN MLR",
+                                    "MICROCYSTIN MRR",
+                                    "MICROCYSTIN RR",
+                                    "MICROCYSTIN UNKNOWN",
+                                    "MICROCYSTIN WR",
+                                    "MICROCYSTIN YR")) %>% 
+  distinct()
 
 ############################################################################################################
 #ADDING THRESHOLDS
@@ -148,13 +197,13 @@ thresholds$simpleF[thresholds$simpleF=="TRUE"]<-"T"
 
 #simplify waterbody classification
 hypoepi<-hypoepi %>% 
-  select(LAKE_ID,WATER,LOCATION_ID,Waterbody_Classification,PWLID,Y_Coordinate,X_Coordinate,SAMPLE_ID,SAMPLE_NAME,DATA_PROVIDER,SAMPLE_DATE,year,TIME,Characteristic.Name,Result.Value,Result.Unit,Result.Sample.Fraction,INFO_TYPE)
+  select(LAKE_ID,WATER,LOCATION_ID,Waterbody_Classification,PWLID,Y_Coordinate,X_Coordinate,SAMPLE_ID,SAMPLE_NAME,DATA_PROVIDER,SAMPLE_DATE,year,TIME,Characteristic.Name,Result.Value,Result.Unit,Result.Sample.Fraction,INFO_TYPE,QUANTITATION_LIMIT,VALIDATOR_QUALIFIERS,INTERPRETED_QUALIFIERS)
 hypoepi$simpleWC<-NA
 hypoepi$simpleWC<-ifelse(grepl("D",hypoepi$Waterbody_Classification),"D",hypoepi$simpleWC)
 hypoepi$simpleWC<-ifelse(grepl("C",hypoepi$Waterbody_Classification),"C",hypoepi$simpleWC)
 hypoepi$simpleWC<-ifelse(grepl("B",hypoepi$Waterbody_Classification),"B",hypoepi$simpleWC)
 hypoepi$simpleWC<-ifelse(grepl("A",hypoepi$Waterbody_Classification),"A",hypoepi$simpleWC)
-hypoepi<-hypoepi[!is.na(hypoepi$simpleWC),]
+#hypoepi<-hypoepi[!is.na(hypoepi$simpleWC),]
 hypoepi$simpleT<-NA
 hypoepi$simpleT<-ifelse(grepl("T",hypoepi$Waterbody_Classification),"T",hypoepi$simpleT)
 hypoepi$simpleT<-ifelse(grepl("TS",hypoepi$Waterbody_Classification),"TS",hypoepi$simpleT)
@@ -290,6 +339,9 @@ hypoepi$INFO_TYPE<-ifelse(hypoepi$INFO_TYPE=="BS","hypolimnion",hypoepi$INFO_TYP
 hypoepi$INFO_TYPE<-ifelse(hypoepi$INFO_TYPE=="OW","epilimnion",hypoepi$INFO_TYPE)
 hypoepi$INFO_TYPE<-ifelse(hypoepi$INFO_TYPE=="SD","secchi",hypoepi$INFO_TYPE)
 hypoepi$year<-as.numeric(hypoepi$year)
+hypoepi<-hypoepi %>% 
+  mutate(Result.Value=trimws(Result.Value),
+         Result.Value=as.numeric(Result.Value))
 
 
 profiles[is.na(profiles$violation),]$violation<-"no WQS violation"
@@ -298,8 +350,8 @@ profiles[(profiles$violation==1),]$violation<-"WQS violation"
 profiles$year<-as.numeric(profiles$year)
 
 #pull specific lakes
-#lakes<-c('0602MOR0152')
-#lakes<-c('0701CRO0185')
+#lakes<-c('1401MOU0114','0903LSI0182')
+#lakes<-c('0402GOD0017')
 
 lakes<-unique(lake[c('LAKE_ID','WATER')])
 lakes<-lakes[!is.na(lakes$LAKE_ID),]
@@ -310,10 +362,19 @@ lakes<-lakes[lakes$LAKE_ID!="0501UWB5668",]
 lakes<-lakes[lakes$LAKE_ID!="0502UWB5192",]
 lakes<-lakes[lakes$LAKE_ID!="0705UWB5898",]
 lakes<-lakes[lakes$LAKE_ID!="1104ADI0587A",]
+
+
 #simplify list
 lakes<-unique(hypoepi[c('LAKE_ID','WATER')])
 lakes<-lakes %>% 
+  mutate(LAKE_ID=gsub("#","",LAKE_ID)) %>% 
   distinct()
+
+#remove because of pandoc error
+#run separately using lake.report.self contained
+lakes<-lakes %>% 
+  filter(!LAKE_ID %in% c('1201STEXXX1'))
+
 lakesnoh<-unique(profiles[c('LAKE_ID','WATER')])
 lakesnoh<-anti_join(lakesnoh,lakes,by=c('LAKE_ID'))
 lakesnoh<-lakesnoh %>% 
@@ -345,7 +406,7 @@ rm(list=c('coords','lakesweb'))
 #for lakes with hypoepi data:
 lakes<-unique(lakes$LAKE_ID)
 nlakes<-length(lakes)
-for(i in 1:nlakes){
+for(i in 581:nlakes){
 lake1<-lake[lake$LAKE_ID==lakes[i],]
 profiles1<-profiles[profiles$LAKE_ID==lakes[i],]
 hypoepi1<-hypoepi[hypoepi$LAKE_ID==lakes[i],]

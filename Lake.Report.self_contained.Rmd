@@ -3,7 +3,8 @@ title: "`r titles`"
 author: "NYS Department of Environmental Conservation"
 date: "`r format(Sys.Date(),format='%B %d, %Y')`"
 output:  
-  html_document
+  html_document:
+    self_contained: no
 ---
 
 ```{r setup, include=FALSE, message=FALSE, warning=FALSE}

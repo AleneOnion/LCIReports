@@ -965,3 +965,29 @@ junk<-junk %>%
          INFO_TYPE!="SD",
          INFO_TYPE!="SB") %>% 
   distinct()
+
+
+
+setwd("L:/DOW/SMAS/data/chemistry/raw_lab_edds/2018/ALS thumb drives/LMAS/LCI")
+
+folder_list <- list.files()
+folder_list<-data.frame(matrix(unlist(folder_list), nrow=length(folder_list), byrow=T))
+library(dplyr)
+library(tidyr)
+
+folder_list<-folder_list %>% 
+  mutate(source="gavin") %>% 
+  rename(files=matrix.unlist.folder_list...nrow...length.folder_list...byrow...T.)
+
+
+setwd("C:/Rscripts/QAQC/sections/data/projectData/LCI.2018/raw")
+
+folder_list2 <- list.files()
+folder_list2<-data.frame(matrix(unlist(folder_list2), nrow=length(folder_list2), byrow=T))
+library(dplyr)
+library(tidyr)
+
+folder_list2<-folder_list2 %>% 
+  mutate(source="have") %>% 
+  rename(files=matrix.unlist.folder_list2...nrow...length.folder_list2...byrow...T.)
+
