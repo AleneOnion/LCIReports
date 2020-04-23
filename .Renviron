@@ -1,2 +1,0 @@
-RSTUDIO_PANDOC="/anaconda2/bin/pandoc"
-PATH="/anaconda2/bin/:${PATH}"

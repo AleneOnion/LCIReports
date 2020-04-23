@@ -30,9 +30,9 @@ rm(template1)
 
 cat(' \n\n ')
 ```
-##Water Quality Standards {.tabset}
+## Water Quality Standards {.tabset}
 
-###Applicable Water Quality Standards:
+### Applicable Water Quality Standards:
 
 The water quality standards applied to this waterbody are:
 
@@ -84,7 +84,7 @@ cat(' \n\n ')
 
 
 
-###WQS Violations
+### WQS Violations
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 viol1<-hypoepi1[hypoepi1$violation=="WQS violation",]
 viol2<-profiles1[profiles1$violation=="WQS violation",]
@@ -107,7 +107,7 @@ rm(list=c('description','template2','template3','viol1','viol2','viol'))
 cat(' \n\n ')
 ```
 
-##Trophic State {.tabset}
+## Trophic State {.tabset}
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 ############################################################################################################
 #Calculate Trophic State Index
@@ -143,11 +143,11 @@ trophic<-trophic[!is.na(trophic$TSI),]
 #Display tables
 ############################################################################################################
 
-#cat("###References ")
+#cat("### References ")
 #cat(" \n\nThe national and state specific thresholds for trophic state and trophic state index are described in detail on pg 57-58 of the following CSLAP Annual Report:\n")
 #cat("<a href='https://tinyurl.com/y2x8x6w5'>2009 CSLAP Annual Report<a/>")
 #cat("     \n\n")
-cat("###Trophic State \n\n")
+cat("### Trophic State \n\n")
 
 cat("in NY State, the thresholds for each trophic status are as follows\n\n")
 trophics<-data.frame(
@@ -178,7 +178,7 @@ trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="PHOSPHORUS" & trophi
 trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="PHOSPHORUS" & trophicass$annualav>0.01,"mesotrophic",trophicass$trophic)
 trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="PHOSPHORUS" & trophicass$annualav>0.02,"eutrophic",trophicass$trophic)
 trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH" & trophicass$annualav<2,"eutrophic",trophicass$trophic)
-trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH" & trophicass$annualav>2,"mesotrophic",trophicass$trophic)
+trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH" & trophicass$annualav>=2,"mesotrophic",trophicass$trophic)
 trophicass$trophic<-ifelse(trophicass$Characteristic.Name=="DEPTH, SECCHI DISK DEPTH" & trophicass$annualav>5,"oligotrophic",trophicass$trophic)
 trophicass$annualav<-NULL
 trophicass<-trophicass %>% 
@@ -192,7 +192,7 @@ if(length(trophic$Characteristic.Name)==0){
 }
 rm(trophicass)
 
-cat(" \n\n###Trophic State Index \n\n ")
+cat(" \n\n### Trophic State Index \n\n ")
 
 cat("The trophic state index is a log transform of chlorophyll, secchi, and phosphorus readings so that they can be compared on a similar scale. \n\n
 The log transforms for each parameter are as follows:\n\n
@@ -261,7 +261,7 @@ cat(' \n\n ')
 
 
 
-##Profiles {.tabset}
+## Profiles {.tabset}
 
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 library(DT)
@@ -275,7 +275,7 @@ temp$Result.Value<-as.numeric(temp$Result.Value)
 
   #simplify for table
    tempsimp<-unique(temp[c('Characteristic.Name','SAMPLE_DATE','Depth','Result.Value','Result.Unit')])
-   cat("  \n###Tabulated Data ")
+   cat("  \n### Tabulated Data ")
     cat(" \n\n ")
     
   datatable(tempsimp, extensions = 'Buttons', options = list(dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
@@ -303,7 +303,7 @@ if(length(temp$Result.Value)!=0){
 library(ggplot2)
 library(gridExtra)
     for(j in 1:nparams){
-      display<-paste("  \n \n","###",params[j],"  \n",sep="")
+      display<-paste("  \n \n","### ",params[j],"  \n",sep="")
       cat(display)
       rm(display)
       
@@ -350,7 +350,7 @@ library(gridExtra)
 cat(' \n\n ')
 ```
 
-##Secchi/Water Column Samples {.tabset}
+## Secchi/Water Column Samples {.tabset}
 
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 library(DT)
@@ -374,7 +374,7 @@ temp$Result.Value<-as.numeric(temp$Result.Value)
             INTERPRETED_QUALIFIERS=ifelse(INTERPRETED_QUALIFIERS=="R",NA,INTERPRETED_QUALIFIERS),
             INTERPRETED_QUALIFIERS=ifelse(INTERPRETED_QUALIFIERS=="N",NA,INTERPRETED_QUALIFIERS),
             INTERPRETED_QUALIFIERS=gsub("Analyte was analyzed for but not detected","Analyte was analyzed for but not detected. Quantitation limit used for the result.value",INTERPRETED_QUALIFIERS))
-   cat("  \n###Tabulated Data ")
+   cat("  \n### Tabulated Data ")
     cat(" \n\n ")
     datatable(tempsimp, extensions = 'Buttons', options = list(dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
     cat(" \n\n ")
@@ -393,7 +393,7 @@ cat(' \n\n ')
     #p<-list()
 
     for(j in 1:nparams){
-      display<-paste("  \n","###",params[j],"  \n",sep="")
+      display<-paste("  \n","### ",params[j],"  \n",sep="")
       cat(display)
       rm(display)
       
@@ -446,9 +446,9 @@ cat(' \n\n ')
 cat(' \n\n ')
 ```
 
-##HABs Samples {.tabset}
+## HABs Samples {.tabset}
 
-###HABs Status Table
+### HABs Status Table
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 if(!is.na(habs1$SAMPLE_DATE[1])){
 habs1<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','STATUS','REMARK','Characteristic.Name','Result.Value','Result.Unit')])
@@ -466,7 +466,7 @@ cat(' \n\n ')
 ```
 
 
-###Tabulated Data
+### Tabulated Data
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 if(!is.na(habs1$SAMPLE_DATE[1])){
 habs1<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','REMARK','Characteristic.Name','Result.Value','Result.Unit')])

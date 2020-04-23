@@ -3,41 +3,13 @@
 # April 2019
 
 library(dplyr)
+library(rmarkdown)
 library(tidyr)
 
 ####################################################################################################
 #Reading in Data tables
 #read data tables
-lake<-read.csv("//dec-home/DEC_HOME/amonion/Lakes.Database/data/current/Lake.Master.csv",na.strings=c("","NA"), stringsAsFactors=FALSE)
-profiles<-read.csv("//dec-home/DEC_HOME/amonion/Lakes.Database/data/current/DEPTH.PROFILE.csv",na.strings=c("","NA"), stringsAsFactors=FALSE)
-location<-read.csv("//dec-home/DEC_HOME/amonion/Lakes.Database/data/current/Location.csv",na.strings=c("","NA"), stringsAsFactors=FALSE)
-results<-read.csv("//dec-home/DEC_HOME/amonion/Lakes.Database/data/current/Test.Results.csv",na.strings=c("","NA"), stringsAsFactors=FALSE)
-sample<-read.csv("//dec-home/DEC_HOME/amonion/Lakes.Database/data/current/Sample.csv",na.strings=c("","NA"), stringsAsFactors=FALSE)
-habs<-read.csv("//dec-home/DEC_HOME/amonion/Lakes.Database/data/current/HABstatus.csv",na.strings=c("","NA"), stringsAsFactors=FALSE)
-
-#Merge data tables
-data<-merge(sample,results,by=c('SAMPLE_ID','SAMPLE_NAME','INFO_TYPE'),all.x=TRUE)
-data<-data %>% filter(!is.na(Characteristic.Name))
-data2<-merge(sample,profiles,by=c("SAMPLE_ID",'INFO_TYPE'),all.x=TRUE)
-data2<-data2 %>% filter(!is.na(Characteristic.Name))
-data<-merge(data,data2,by=c("LAKE_ID","LOCATION_ID","SAMPLE_ID","SAMPLE_NAME","DATA_PROVIDER","INFO_TYPE","SAMPLE_DATE",
-                            "TIME","START_DEPTH","END_DEPTH","ESF.","UFI.","REMARK","BLOOM_LOC",
-                            "WIND_DIR","WIND_INT","EXTENT","BLOOM_DESC","EQUIPMENT_DESC","EQUIPMENT_TYPE","LAKE_PROJ_CODE",
-                            "SAMPLE_METHOD","PERCENT","DEPTH_UNIT","Characteristic.Name","Result.Value","Result.Unit"),all=TRUE)
-rm(data2)
-data<-merge(data,sample,by=c("LAKE_ID","LOCATION_ID","SAMPLE_ID","SAMPLE_NAME","DATA_PROVIDER","INFO_TYPE","SAMPLE_DATE",
-                             "TIME","START_DEPTH","END_DEPTH","ESF.","UFI.","REMARK","BLOOM_LOC",
-                             "WIND_DIR","WIND_INT","EXTENT","BLOOM_DESC","EQUIPMENT_DESC","EQUIPMENT_TYPE","LAKE_PROJ_CODE",
-                             "SAMPLE_METHOD","PERCENT","DEPTH_UNIT"),all=TRUE)
-data<-merge(data,lake,by=c('LAKE_ID'),all.x=TRUE)
-data<-merge(data,location,by=c('LOCATION_ID','LAKE_ID'),all.x = TRUE)
-data<-merge(data,habs, by=c('SAMPLE_ID'),all.x = TRUE)
-
-#remove individual data tables in working environment
-rm(list = c('lake','profiles','location','results','sample','habs'))
-#Make sure records are distinct
-library(dplyr)
-data<-distinct(data)
+head(data)
 
 
 ####################################################################################################
@@ -351,7 +323,7 @@ profiles$year<-as.numeric(profiles$year)
 
 #pull specific lakes
 #lakes<-c('1401MOU0114','0903LSI0182')
-#lakes<-c('0402GOD0017')
+#lakes<-c('1402EAS0055')
 
 lakes<-unique(lake[c('LAKE_ID','WATER')])
 lakes<-lakes[!is.na(lakes$LAKE_ID),]
@@ -406,7 +378,7 @@ rm(list=c('coords','lakesweb'))
 #for lakes with hypoepi data:
 lakes<-unique(lakes$LAKE_ID)
 nlakes<-length(lakes)
-for(i in 581:nlakes){
+for(i in 1:nlakes){
 lake1<-lake[lake$LAKE_ID==lakes[i],]
 profiles1<-profiles[profiles$LAKE_ID==lakes[i],]
 hypoepi1<-hypoepi[hypoepi$LAKE_ID==lakes[i],]
@@ -421,7 +393,7 @@ titles<-lake1$WATER[1]
 ids<-lake1$LAKE_ID[1]
 rmarkdown::render('Lake.Report.Rmd',  # file 2
                   output_file =  paste("report_", titles,"(",ids,")", ".html", sep=''), 
-                  output_dir = 'Lake.Reports')
+                  output_dir = 'C:/Users/amonion.000/New York State Office of Information Technology Services/LMAS - General/LakeReports')
 rm(list=c('lake1','profiles1','hypoepi1','habs1','titles','ids','thistitle','ids'))
 }
 
@@ -441,7 +413,7 @@ for(i in 1:nlakes){
   ids<-lake1$LAKE_ID[1]
   rmarkdown::render('Lake.Report.nohypoepi.Rmd',  # file 2
                     output_file =  paste("report_", titles,"(",ids,")", ".html", sep=''), 
-                    output_dir = 'Lake.Reports')
+                    output_dir = 'C:/Users/amonion.000/New York State Office of Information Technology Services/LMAS - General/LakeReports')
   rm(list=c('lake1','profiles1','hypoepi1','habs1','titles','ids','thistitle','ids'))
 }
 
@@ -459,7 +431,7 @@ for(i in 1:nlakes){
   ids<-lake1$LAKE_ID[1]
   rmarkdown::render('Lake.Report.onlyhabs.Rmd',  # file 2
                     output_file =  paste("report_", titles,"(",ids,")", ".html", sep=''), 
-                    output_dir = 'Lake.Reports')
+                    output_dir = 'C:/Users/amonion.000/New York State Office of Information Technology Services/LMAS - General/LakeReports')
   rm(list=c('lake1','profiles1','hypoepi1','habs1','titles','ids','thistitle','ids'))
   
 }

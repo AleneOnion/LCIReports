@@ -29,12 +29,12 @@ cat(sprintf(template1,laketemp$WATER[1],laketemp$ACRES[1],laketemp$County[1],lak
 rm(template1)
 
 ```
-##Water Quality Standards {.tabset}
+## Water Quality Standards {.tabset}
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 library(knitr)
 library(DT)
 
-template1 <- "###Applicable Water Quality Standards:\n
+template1 <- "### Applicable Water Quality Standards:\n
 %s \n
 PWLID: %s\n
 Waterbody Classification: %s\n
@@ -80,23 +80,23 @@ rm(list=c('minithresh','desthresh'))
 
 ```
 
-###WQS Violations
+### WQS Violations
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
   cat(sprintf(template3,description$WATER))
 ```
 
-##Trophic States {.tabset}
+## Trophic States {.tabset}
 
 None of the trophic parameters (chlorophyll, secchi, or phosphorus) have yet been measured at this waterbody. Therefore we cannot calculate the trophic state.
 
 
-##Profiles {.tabset}
+## Profiles {.tabset}
 
 No profile data have yet been collected at this waterbody.
 
-##HABs Samples {.tabset}
+## HABs Samples {.tabset}
 
-###HABs Status Table
+### HABs Status Table
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 if(!is.na(habs1$SAMPLE_DATE[1])){
 habs1<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','STATUS','REMARK','Characteristic.Name','Result.Value','Result.Unit')])
@@ -113,7 +113,7 @@ cat(' \n\n ')
 ```
 
 
-###Tabulated Data
+### Tabulated Data
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 if(!is.na(habs1$SAMPLE_DATE[1])){
 habs1<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','REMARK','Characteristic.Name','Result.Value','Result.Unit')])

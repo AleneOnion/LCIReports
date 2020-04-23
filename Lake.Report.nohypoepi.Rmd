@@ -29,12 +29,12 @@ cat(sprintf(template1,laketemp$WATER[1],laketemp$ACRES[1],laketemp$County[1],lak
 rm(template1)
 
 ```
-##Water Quality Standards {.tabset}
+## Water Quality Standards {.tabset}
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 library(knitr)
 library(DT)
 
-template1 <- "###Applicable Water Quality Standards:\n
+template1 <- "### Applicable Water Quality Standards:\n
 %s \n
 PWLID: %s\n
 Waterbody Classification: %s\n
@@ -82,7 +82,7 @@ rm(list=c('minithresh','desthresh'))
 
 
 
-###WQS Violations
+### WQS Violations
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 
 viol<-profiles1[profiles1$violation=="WQS violation",]
@@ -102,21 +102,21 @@ rm(list=c('description','template1','template2','template3','viol1','viol2','vio
 
 ```
 
-##Trophic States {.tabset}
+## Trophic States {.tabset}
 
 None of the trophic parameters (chlorophyll, secchi, or phosphorus) have yet been measured at this waterbody. Therefore we cannot calculate the trophic state.
 
 
 
 
-##Profiles {.tabset}
+## Profiles {.tabset}
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
   library(DT)
   temp<- profiles1
   
   #simplify for table
    tempsimp<-unique(temp[c('Characteristic.Name','SAMPLE_DATE','Depth','Result.Value','Result.Unit')])
-   cat("   \n###Tabulated Data \n\n ")
+   cat("   \n### Tabulated Data \n\n ")
     #DT::datatable(tempsimp, options = list(scrollX = TRUE,columnDefs = list(list(className = 'dt-center', targets = 0:5))))
     datatable(tempsimp, extensions = 'Buttons', options = list(dom = 'Bfrtip',buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
     rm(tempsimp)
@@ -134,7 +134,7 @@ if(length(temp$Result.Value)!=0){
 library(ggplot2)
 library(gridExtra)
     for(j in 1:nparams){
-      display<-paste("  \n \n","###",params[j],"  \n",sep="")
+      display<-paste("  \n \n","### ",params[j],"  \n",sep="")
       cat(display)
       rm(display)
       
@@ -182,9 +182,9 @@ library(gridExtra)
 
 ```
 
-##HABs Samples {.tabset}
+## HABs Samples {.tabset}
 
-###HABs Status Table
+### HABs Status Table
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 if(!is.na(habs1$SAMPLE_DATE[1])){
 habs1<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','STATUS','REMARK','Characteristic.Name','Result.Value','Result.Unit')])
@@ -201,7 +201,7 @@ cat(' \n\n ')
 ```
 
 
-###Tabulated Data
+### Tabulated Data
 ```{r, echo=FALSE, results='asis', message=FALSE, warning=FALSE}
 if(!is.na(habs1$SAMPLE_DATE[1])){
 habs1<-unique(habs1[c('SAMPLE_DATE','INFO_TYPE','DATA_PROVIDER','REMARK','Characteristic.Name','Result.Value','Result.Unit')])
